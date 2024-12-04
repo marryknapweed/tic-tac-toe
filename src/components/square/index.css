@@ -1,0 +1,41 @@
+.square {
+  width: 100%;
+  background-color: #fff;
+  border: 2px solid #b8b8b8;
+  font-size: calc(2.5rem + 2vmin);
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s, transform 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1;
+  line-height: 1;
+  box-sizing: border-box;
+  touch-action: manipulation; /* Отключение жестов */
+  -webkit-tap-highlight-color: transparent; /* Убирает вспышку нажатия в Safari */
+  background-color: white;
+}
+
+.square:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
+}
+
+.square:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.winning {
+  background-color: #fed6e3;
+  color: #000;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .square {
+    outline: none; /* Убирает фокус на мобильных устройствах */
+  }
+}

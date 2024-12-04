@@ -1,0 +1,206 @@
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  margin: 0;
+}
+
+.auth {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 30px;
+  width: 350px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.auth h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.input-container {
+  position: relative;
+}
+
+.input-container input {
+  background-color: #fff;
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus {
+  border-color: #306732;
+  box-shadow: 0 0 8px #306732;
+  background-color: #f3f9ff;
+}
+
+/* Сообщение об ошибке */
+.error-message {
+  font-size: 12px;
+  color: #f44336;
+  display: block;
+  text-align: left;
+}
+
+.input-container.error input {
+  border: none;
+  box-shadow: 0 0 8px #f44336;
+}
+
+/* Убираем цвет фона при автозаполнении */
+input:-webkit-autofill {
+  background-color: #fff !important;
+  box-shadow: 0 0 0 30px #fff inset !important;
+  -webkit-box-shadow: 0 0 0 30px #fff inset !important;
+}
+
+.input-container .toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-button {
+  padding: 12px;
+  margin-top: 20px;
+  background: #ff8ba7;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.auth-button:hover {
+  background: #ff6f91;
+}
+
+.auth input::placeholder {
+  color: #aaa;
+}
+
+/* Стили для ссылки регистрации */
+.register-link {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+
+.register-link span {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.register-link a {
+  color: #ff8ba7;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.register-link a:hover {
+  color: #ff6f91;
+  text-decoration: underline;
+  transform: scale(1.05);
+}
+
+.register-link a:active {
+  color: #e35d80;
+}
+
+@media (max-width: 1024px) {
+  .auth {
+    max-width: 350px;
+  }
+
+  .auth h2 {
+    font-size: 22px;
+  }
+
+  .auth-button {
+    font-size: 14px;
+  }
+
+  .input-container input {
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth {
+    max-width: 320px;
+  }
+
+  .auth h2 {
+    font-size: 20px;
+  }
+
+  .auth-button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .input-container input {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .register-link {
+    font-size: 12px;
+  }
+
+  .register-link a {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth {
+    max-width: 300px;
+  }
+
+  .auth h2 {
+    font-size: 18px;
+  }
+
+  .auth-button {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .input-container input {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .register-link {
+    font-size: 10px;
+  }
+
+  .register-link a {
+    font-size: 10px;
+  }
+}

@@ -1,0 +1,113 @@
+.leaderboard-container {
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f7f7fc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Arial", sans-serif;
+  margin: 70px 0px;
+  overflow-x: auto;
+}
+
+.leaderboard-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Обёртка таблицы */
+.leaderboard-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* Таблица */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #333;
+  table-layout: fixed;
+}
+
+/* Заголовок таблицы */
+.leaderboard-table th {
+  background-color: #a8edea;
+  color: #333;
+  padding: 10px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 2px solid #383858;
+  font-size: 16px;
+}
+
+/* Тело таблицы */
+.leaderboard-table td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Чередование строк */
+.leaderboard-table tr:nth-child(even) {
+  background-color: #e8e8f6;
+}
+
+.leaderboard-table tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+/* Hover эффект */
+.leaderboard-table tr:hover {
+  background-color: #d4d4eb;
+}
+
+.leaderboard-username {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .leaderboard-title {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .leaderboard-container {
+    padding: 15px;
+  }
+
+  .leaderboard-username {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .leaderboard-title {
+    font-size: 18px;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 5px;
+    font-size: 10px;
+  }
+
+  .leaderboard-username {
+    max-width: 80px;
+  }
+}

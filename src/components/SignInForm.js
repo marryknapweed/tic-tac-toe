@@ -17,7 +17,8 @@ export function Login() {
 
       if (isAuthenticated) {
         const savedUsername = localStorage.setItem("username", username);
-        dispatch(login(savedUsername));
+        const savedId = localStorage.setItem("id", isAuthenticated);
+        dispatch(login({username, id: isAuthenticated}));
         navigate("/game");
       } else {
         alert("Invalid username or password");

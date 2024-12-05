@@ -303,7 +303,7 @@ import "./index.css";
 
 export function Game({ player }) {
   const dispatch = useDispatch();
-  const {username, id} = useSelector(state => state.user);
+  const { username, id } = useSelector(state => state.user);
   const navigate = useNavigate();
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
@@ -321,10 +321,8 @@ export function Game({ player }) {
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
 
-  console.log(username, id)
-
   useEffect(() => {
-    if (username) {
+    if (!username) {
       navigate("/auth/signin");
     }
   }, [username, navigate]);
@@ -341,7 +339,7 @@ export function Game({ player }) {
       setTimeUntilChaos(prevTime => {
         if (prevTime <= 1) {
           chaos();
-          return 5; // Сброс таймера
+          return 5;
         }
         return prevTime - 1;
       });
@@ -404,7 +402,7 @@ export function Game({ player }) {
 
   useEffect(() => {
     if (winner && !winnerUpdated) {
-      console.log(username, id)
+      // console.log(username, id);
       setGameOver(true);
 
       // Обновляем счет только один раз за победу
@@ -423,7 +421,7 @@ export function Game({ player }) {
       setGameOver(true);
       dispatch(updateStats({ result: "draws" }));
     }
-  }, [winner, winnerUpdated, scores, dispatch, isBoardFull, gameOver]);
+  }, [winner, winnerUpdated, dispatch, isBoardFull, gameOver, username, id]);
 
   useEffect(() => {
     if (!gameOver && !isPlayerTurn) {
@@ -431,24 +429,20 @@ export function Game({ player }) {
         const aiMove = makeAIMove(currentSquares, botLevel);
 
         if (aiMove !== null && currentSquares[aiMove] === null) {
-          const updatedSquares = [...currentSquares];
-          updatedSquares[aiMove] = "O"; // AI всегда играет "O"
-
-          const nextHistory = [
-            ...history.slice(0, currentMove + 1),
-            updatedSquares,
-          ];
-          setHistory(nextHistory);
-          setCurrentMove(nextHistory.length - 1);
-          setCurrentSquares(updatedSquares);
-
+          setCurrentSquares(prevSquares => {
+            const updatedSquares = [...prevSquares];
+            updatedSquares[aiMove] = "O";
+            setHistory(prevHistory => [...prevHistory, updatedSquares]);
+            setCurrentMove(prevMove => prevMove + 1);
+            return updatedSquares;
+          });
           setIsPlayerTurn(true); // Передаем ход игроку
         }
       }, 500);
 
-      return () => clearTimeout(timeout); // Очищаем таймаут
+      return () => clearTimeout(timeout);
     }
-  }, [currentSquares, isPlayerTurn, gameOver, botLevel, history, currentMove]);
+  }, [currentSquares, isPlayerTurn, gameOver, botLevel]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);

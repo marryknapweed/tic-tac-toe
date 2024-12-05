@@ -16,7 +16,6 @@ import {
 export async function saveUserStats(id, stats) {
   const userRef = doc(db, "users", id);
   const docSnap = await setDoc(userRef, { stats }, { merge: true });
-  console.log(docSnap);
 }
 
 // Получение статистики конкретного пользователя
@@ -69,7 +68,8 @@ export async function authenticateUser(username, password) {
   const queryQS = await getDocs(userFilter);
 
   if (queryQS.docs.length > 0) {
-    return { status: true, username };
+    const id = queryQS.docs[0].id
+    return id
   } else {
     return false;
   }

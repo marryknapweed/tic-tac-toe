@@ -302,8 +302,8 @@ import { Timer } from "../timer";
 import "./index.css";
 
 export function Game({ player }) {
-  const username = useSelector(state => state.user.username);
   const dispatch = useDispatch();
+  const {username, id} = useSelector(state => state.user);
   const navigate = useNavigate();
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
@@ -321,8 +321,10 @@ export function Game({ player }) {
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
 
+  console.log(username, id)
+
   useEffect(() => {
-    if (!username) {
+    if (username) {
       navigate("/auth/signin");
     }
   }, [username, navigate]);
@@ -402,6 +404,7 @@ export function Game({ player }) {
 
   useEffect(() => {
     if (winner && !winnerUpdated) {
+      console.log(username, id)
       setGameOver(true);
 
       // Обновляем счет только один раз за победу
@@ -411,9 +414,11 @@ export function Game({ player }) {
       setWinnerUpdated(true); // Устанавливаем, что победитель обновлен
 
       // Обновляем статистику игрока
-      dispatch(
-        updateStats({ result: winner.winner === "X" ? "wins" : "losses" })
-      );
+      if (username && id) {
+        dispatch(
+          updateStats({ result: winner.winner === "X" ? "wins" : "losses" })
+        );
+      }
     } else if (!winner && isBoardFull && !gameOver) {
       setGameOver(true);
       dispatch(updateStats({ result: "draws" }));

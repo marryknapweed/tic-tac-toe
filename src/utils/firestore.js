@@ -15,7 +15,7 @@ import {
 // // Сохранение статистики пользователя
 export async function saveUserStats(id, stats) {
   const userRef = doc(db, "users", id);
-  const docSnap = await setDoc(userRef, { stats }, { merge: true });
+  const docUpdate = await updateDoc(userRef, {stats})
 }
 
 // Получение статистики конкретного пользователя
@@ -69,7 +69,8 @@ export async function authenticateUser(username, password) {
 
   if (queryQS.docs.length > 0) {
     const id = queryQS.docs[0].id
-    return id
+    const role = queryQS.docs[0].data().role
+    return {id, role}
   } else {
     return false;
   }
@@ -84,18 +85,38 @@ export async function authenticateUser(username, password) {
 // }
 
 // Получение истории игр пользователя
-// export async function fetchGameHistory(id) {
-//   const userRef = doc(db, "users", id);
-//   const gamesCollection = collection(userRef, "games");
+export async function fetchGameHistory(specifiedUser = undefined) {
+  let userRef;
+  if (specifiedUser != undefined) {
+    userRef = doc(db, "games_history");
+  } else {
+    userRef = doc(db, "games_history", specifiedUser);
+  }
+  const gamesCollection = collection(userRef, "games_history");
 
-//   try {
-//     const querySnapshot = await getDocs(gamesCollection);
-//     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-//   } catch (error) {
-//     console.error("Error fetching game history: ", error);
-//     return [];
-//   }
-// }
+  try {
+    const querySnapshot = await getDocs(gamesCollection).docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log(querySnapshot)
+    return querySnapshot
+  } catch (error) {
+    console.error("Error fetching game history: ", error);
+    return [];
+  }
+}
+
+export async function appendGameHistory(data) {
+  const gamesCollection = collection(db, "games_history"); // Reference to the "games" collection
+
+  try {
+    // Add a new document to the "games" collection
+    const docRef = await addDoc(gamesCollection, data);
+    console.log("Document written with ID: ", docRef.id);
+    return docRef.id; // Optionally return the ID of the newly added document
+  } catch (error) {
+    console.error("Error appending game history: ", error);
+    return null; // Return null or handle the error as needed
+  }
+}
 
 export async function addRegisteredUser(username, password, phone) {
   const defaults = {

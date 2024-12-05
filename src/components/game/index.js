@@ -290,10 +290,10 @@
 //   );
 // }
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Board } from "../board";
 import { useDispatch, useSelector } from "react-redux";
-import { logout, updateStats } from "../../redux/user-slice";
+import { logout, updateStats, updateGamesHistory } from "../../redux/user-slice";
 import { useNavigate } from "react-router-dom";
 import { calculateWinner } from "../../utils";
 import { makeAIMove } from "../../utils/ai";
@@ -308,12 +308,13 @@ export function Game({ player }) {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
   const [currentSquares, setCurrentSquares] = useState(Array(9).fill(null));
-  const [scores, setScores] = useState({ X: 0, O: 0 });
+  const scores = useRef({ X: 0, O: 0 });
   const [timeUntilChaos, setTimeUntilChaos] = useState(5);
-  const [gameOver, setGameOver] = useState(false);
+  // const [gameOver, setGameOver] = useState(false);
+  const gameOver = useRef(false);
   const [gameStarted, setGameStarted] = useState(false); // Состояние для отслеживания начала игры
   const [isPlayerTurn, setIsPlayerTurn] = useState(true); //Cостояние для хода игрока
-  const [winnerUpdated, setWinnerUpdated] = useState(false);
+  const winnerUpdated = useRef(false);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [botLevel, setBotLevel] = useState("easy");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -329,11 +330,11 @@ export function Game({ player }) {
 
   useEffect(() => {
     const savedScores = getData("scores") || { X: 0, O: 0 };
-    setScores(savedScores);
+    scores.current = savedScores;
   }, []);
 
   useEffect(() => {
-    if (gameOver) return;
+    if (gameOver.current) return;
 
     const chaosTimer = setInterval(() => {
       setTimeUntilChaos(prevTime => {
@@ -346,7 +347,7 @@ export function Game({ player }) {
     }, 1000);
 
     return () => clearInterval(chaosTimer);
-  }, [gameOver, currentSquares]);
+  }, [gameOver.current, currentSquares]);
 
   const chaos = () => {
     const newSquares = [...currentSquares];
@@ -366,7 +367,7 @@ export function Game({ player }) {
 
   function handlePlay(nextSquares, index) {
     // Проверяем, если игра окончена, клетка уже занята, или ход не игрока
-    if (gameOver || nextSquares[index] || !isPlayerTurn) return;
+    if (gameOver.current || nextSquares[index] || !isPlayerTurn) return;
 
     const updatedSquares = nextSquares.slice();
     updatedSquares[index] = xIsNext ? "X" : "O"; // Устанавливаем X или O в выбранную клетку
@@ -393,38 +394,38 @@ export function Game({ player }) {
     setHistory([Array(9).fill(null)]);
     setCurrentMove(0);
     setCurrentSquares(Array(9).fill(null));
-    setGameOver(false);
-    setWinnerUpdated(false);
+    gameOver.current = false;
+    winnerUpdated.current = false;
     setGameStarted(false);
     setTimeUntilChaos(5);
     setIsPlayerTurn(true); // Сброс хода на игрока
   }
 
   useEffect(() => {
-    if (winner && !winnerUpdated) {
-      // console.log(username, id);
-      setGameOver(true);
+    if (winner && !winnerUpdated.current) {
+      gameOver.current = true;
 
       // Обновляем счет только один раз за победу
       const newScores = { ...scores };
       newScores[winner.winner] += 1;
-      setScores(newScores);
-      setWinnerUpdated(true); // Устанавливаем, что победитель обновлен
+      scores.current = newScores;
+      winnerUpdated.current = true; // Устанавливаем, что победитель обновлен
 
       // Обновляем статистику игрока
-      if (username && id) {
         dispatch(
-          updateStats({ result: winner.winner === "X" ? "wins" : "losses" })
+          updateStats({ result: winner.winner === "X" ? "wins" : "losses" }),
         );
-      }
-    } else if (!winner && isBoardFull && !gameOver) {
-      setGameOver(true);
+        dispatch(
+          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses" })
+        );
+    } else if (!winner && isBoardFull && !gameOver.current) {
+      gameOver.current = true
       dispatch(updateStats({ result: "draws" }));
     }
-  }, [winner, winnerUpdated, dispatch, isBoardFull, gameOver, username, id]);
+  }, [winner, winnerUpdated.current, dispatch, isBoardFull, gameOver.current]);
 
   useEffect(() => {
-    if (!gameOver && !isPlayerTurn) {
+    if (!gameOver.current && !isPlayerTurn) {
       const timeout = setTimeout(() => {
         const aiMove = makeAIMove(currentSquares, botLevel);
 
@@ -442,7 +443,7 @@ export function Game({ player }) {
 
       return () => clearTimeout(timeout);
     }
-  }, [currentSquares, isPlayerTurn, gameOver, botLevel]);
+  }, [currentSquares, isPlayerTurn, gameOver.current, botLevel]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -455,7 +456,7 @@ export function Game({ player }) {
 
   // Функция обработчик для завершения таймера
   const handleTimerEnd = () => {
-    if (!gameOver) {
+    if (!gameOver.current) {
       chaos();
     }
   };
@@ -480,7 +481,7 @@ export function Game({ player }) {
           </div>
         </div>
         <div className="game-main">
-          {gameStarted && timeUntilChaos > 0 && !gameOver && (
+          {gameStarted && timeUntilChaos > 0 && !gameOver.current && (
             <Timer remainingTime={timeUntilChaos} onTimerEnd={handleTimerEnd} />
           )}
           <div className="game-board">
@@ -495,11 +496,13 @@ export function Game({ player }) {
           <div className="game-scores">
             <div className="score-container">
               <p className="score-label">{username}</p>
-              <div className="score">{scores.X}</div>
+              {/* <div className="score">{scores.current.X}</div> */}
+               <div className="score">{0}</div>
             </div>
             <div className="score-container">
               <p className="score-label">AI</p>
-              <div className="score">{scores.O}</div>
+              {/* <div className="score">{scores.current.O}</div> */}
+                   <div className="score">{0}</div>
             </div>
           </div>
 

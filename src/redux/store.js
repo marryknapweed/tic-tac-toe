@@ -44,6 +44,6 @@ export const store = configureStore({
   reducer: {
     user: userReducer,
     leaderboard: leaderboardReducer,
-    // gameHistory: gameHistoryReducer,
+    gameHistory: gameHistoryReducer,
   },
 });

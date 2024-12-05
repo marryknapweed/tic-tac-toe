@@ -71,7 +71,8 @@ export function Login() {
 
       if (isAuthenticated) {
         localStorage.setItem("username", username); // Важно сохранить в localStorage
-        localStorage.setItem("id", isAuthenticated);
+        localStorage.setItem("id", isAuthenticated.id);
+        localStorage.setItem("role", isAuthenticated.role);
         dispatch(login({ username, id: isAuthenticated }));
         navigate("/game");
       } else {

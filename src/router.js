@@ -48,10 +48,10 @@ export const router = createBrowserRouter([
             path: "profile",
             element: <Profile />,
           },
-          // {
-          //   path: "history",
-          //   element: <GameHistory />,
-          // },
+          {
+            path: "history",
+            element: <GameHistory />,
+          },
         ],
       },
     ],

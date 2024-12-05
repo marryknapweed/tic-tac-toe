@@ -3,7 +3,13 @@ import { Navigate, Outlet } from "react-router-dom";
 
 // Проверка авторизации через localStorage
 export const PrivateRoute = () => {
-  const isAuthenticated = Boolean(localStorage.getItem("username")); // Проверяем токен авторизации
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/auth/signin" replace />;
+  const isAuthenticated = Boolean(localStorage.getItem("username") && localStorage.getItem('id')); // Проверяем токен авторизации
+  const isAdmin = Boolean(localStorage.getItem('role') === 'admin')
+
+  if (isAdmin) {
+    return <Navigate to="/history" replace />
+  }
+
+  return isAuthenticated && !isAdmin ? <Outlet /> : <Navigate to="/auth/signin" replace />;
 };

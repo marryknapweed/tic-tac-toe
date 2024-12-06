@@ -85,19 +85,21 @@ export async function authenticateUser(username, password) {
 // }
 
 // Получение истории игр пользователя
-export async function fetchGameHistory(specifiedUser = undefined) {
-  let userRef;
-  if (specifiedUser != undefined) {
-    userRef = doc(db, "games_history");
-  } else {
-    userRef = doc(db, "games_history", specifiedUser);
-  }
-  const gamesCollection = collection(userRef, "games_history");
+export async function fetchGameHistory(specifiedUser  = undefined) {
+  const gamesCollection = collection(db, "games_history");
 
   try {
-    const querySnapshot = await getDocs(gamesCollection).docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log(querySnapshot)
-    return querySnapshot
+    const querySnapshot = await getDocs(gamesCollection);
+    const gamesData = querySnapshot.docs .map(doc => ({
+      id: doc.id,
+      opponent: doc.data().opponent,
+      wins: doc.data().wins,
+      user_id: doc.data().user_id,
+      date: doc.data().date.seconds // Extracting only the seconds directly
+  }));
+    
+    console.log(gamesData);
+    return gamesData;
   } catch (error) {
     console.error("Error fetching game history: ", error);
     return [];

@@ -401,6 +401,8 @@ export function Game({ player }) {
     setIsPlayerTurn(true); // Сброс хода на игрока
   }
 
+  console.log(scores)
+
   useEffect(() => {
     if (winner && !winnerUpdated.current) {
       gameOver.current = true;

@@ -8,6 +8,7 @@ import "./index.css";
 
 export function Header() {
   const username = useSelector(state => state.user.username);
+  const isAdmin = Boolean(localStorage.getItem("role") === 'admin')
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,15 +32,19 @@ export function Header() {
 
   return (
     <header className="header">
-      <Link to="/game" className="header__logo">
-        Game App
-      </Link>
+      { !isAdmin && (
+         <Link to="/game" className="header__logo">
+         Game App
+       </Link>
+      )}
       <div className="header__burger" onClick={toggleMenu}>
         {menuOpen ? <HiX size={30} /> : <HiOutlineMenuAlt3 size={30} />}
       </div>
       <nav
         className={`header__nav ${menuOpen ? "header__nav--mobile open" : ""}`}
       >
+      { !isAdmin && (
+        <>
         <Link
           to="/game"
           className="header__link"
@@ -54,6 +59,9 @@ export function Header() {
         >
           Leaderboard
         </Link>
+        </>
+      )}
+      
         {username && (
           <div className="header__profile--mobile" onClick={goToProfile}>
             <FaUserCircle className="header__icon" />

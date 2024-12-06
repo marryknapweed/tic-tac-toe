@@ -3,11 +3,22 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchGameHistory } from "../../utils/firestore";
 import { setGameHistory } from "../../redux/game-history-slice";
 import "./index.css";
+import { useNavigate } from "react-router-dom";
 
 export const GameHistory = () => {
   const dispatch = useDispatch();
-  const username = useSelector(state => state.user.username);
   const gameHistory = useSelector(state => state.gameHistory.games);
+  const navigate = useNavigate();
+
+  const isAdmin = () => {
+    const role = localStorage.getItem("role");
+    if (role === 'admin') {
+      return true;
+    } else {
+      navigate("/auth/signup");
+      return false; // Return false if not admin
+    }
+  };
 
   useEffect(() => {
     const loadGameHistory = async () => {
@@ -15,9 +26,11 @@ export const GameHistory = () => {
       console.log("Fetched games:", games); // Log the fetched games
       dispatch(setGameHistory(games));
     };
-  
-    loadGameHistory();
-  }, [dispatch]);
+
+    if (isAdmin()) {
+      loadGameHistory();
+    }
+  }, [dispatch, navigate]); // Add navigate to the dependency array
 
   // Группировка игр по датам
   const groupedGames = gameHistory

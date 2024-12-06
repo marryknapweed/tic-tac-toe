@@ -92,13 +92,15 @@ const userSlice = createSlice({
           [result]: state.stats[result] + 1, // Увеличиваем счетчик на 1
         };
       }
-      console.log("received:", result)
-      console.log("Updated stats:", state.stats); // Логируем обновленные данные
+
+      console.log(state.id)
 
       // Если есть id пользователя, сохраняем обновленную статистику в Firestore
-      if (state.id) {
+      if (state.id && typeof state.id === 'string') {
         saveUserStats(state.id, state.stats);
-      }
+    } else {
+        console.error('Invalid user ID:', state.id);
+    }
     },
 
     updateGamesHistory(state, action) {

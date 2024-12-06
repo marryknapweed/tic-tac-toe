@@ -19,6 +19,8 @@ export function Header() {
     navigate("/auth/signin");
     setMenuOpen(false);
     localStorage.removeItem("username"); // Удаляем токен авторизации
+    localStorage.removeItem("role")
+    localStorage.removeItem("id")
   };
 
   const goToProfile = () => {

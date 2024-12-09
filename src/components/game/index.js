@@ -323,6 +323,8 @@ export function Game({ player }) {
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
 
+  console.log(currentSquares)
+
   const isUser = () => {
     const role = localStorage.getItem("role");
     if (role === 'user') {

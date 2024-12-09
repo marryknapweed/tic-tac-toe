@@ -10,7 +10,9 @@ import {
   where,
   get,
   addDoc,
+  deleteDoc,
 } from "firebase/firestore";
+import generateRoomId from "./generateRoomId";
 
 // // Сохранение статистики пользователя
 export async function saveUserStats(id, stats) {
@@ -138,10 +140,95 @@ export async function addRegisteredUser(username, password, phone) {
   try {
     const usersCollection = collection(db, "users");
     const querySnapshot = await addDoc(usersCollection, combinedData);
-    console.log("====================================");
-    console.log(querySnapshot);
-    console.log("====================================");
   } catch (error) {
     console.error("Error adding registered user: ", error);
   }
+}
+
+export async function roomActions() {
+  async function createRoom(username) {
+      const dataTemplate = {
+          messages: {},
+          squares: [],
+          player1: username, // host
+          p1_role: 'x',
+          player2: '',
+          p2_role: 'o',
+          roomId: generateRoomId()
+      };
+      
+      try {
+          const usersCollection = collection(db, "online_rooms");
+          const querySnapshot = await addDoc(usersCollection, dataTemplate);
+          return dataTemplate.roomId
+      } catch (error) {
+          console.error("Error adding registered user: ", error);
+      }
+  }
+
+  async function deleteRoom(id) {
+    try {
+        const usersCollection = collection(db, "online_rooms");
+        const roomFilter = query(usersCollection, where("roomId", "==", id));
+        
+        // Get the documents that match the query
+        const querySnapshot = await getDocs(roomFilter);
+        
+        // Check if any documents were found
+        if (!querySnapshot.empty) {
+            // Loop through the documents and delete them
+            querySnapshot.forEach(async (docSnapshot) => {
+                await deleteDoc(docSnapshot.ref);
+                console.log("Room deleted with ID: ", id);
+            });
+        } else {
+            console.log("No room found with ID: ", id);
+        }
+    } catch (error) {
+        console.error("Error deleting room: ", error);
+    }
+} 
+
+async function connectRoom(id, username) {
+  try {
+      const usersCollection = collection(db, "online_rooms");
+      const roomFilter = query(usersCollection, where("roomId", "==", id));
+      
+      // Get the documents that match the query
+      const querySnapshot = await getDocs(roomFilter);
+      
+      // Check if any documents were found
+      if (!querySnapshot.empty) {
+          // Loop through the documents and update player2
+          querySnapshot.forEach(async (docSnapshot) => {
+              const roomDocRef = docSnapshot.ref; // Get the document reference
+              await updateDoc(roomDocRef, { player2: username }); // Update player2 with the username
+              console.log("Connected to room with ID: ", id);
+          });
+      } else {
+          console.log("No room found with ID: ", id);
+      }
+  } catch (error) {
+      console.error("Error connecting to room: ", error);
+  }
+}
+
+  return { createRoom, deleteRoom, connectRoom };
+}
+
+// Example usage
+(async () => {
+  const actions = await roomActions();
+  const roomId = await actions.createRoom('marry123'); // Get the roomId
+  setTimeout(() => {
+    actions.connectRoom(roomId, 'testuser'); // Use the roomId in deleteRoom
+}, 5000);
+  setTimeout(() => {
+      actions.deleteRoom(roomId); // Use the roomId in deleteRoom
+  }, 10000);
+})();
+
+
+export async function trackUsersActions(roomId) {
+  
 }

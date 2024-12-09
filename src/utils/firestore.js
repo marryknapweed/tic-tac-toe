@@ -216,17 +216,17 @@ async function connectRoom(id, username) {
   return { createRoom, deleteRoom, connectRoom };
 }
 
-// Example usage
-(async () => {
-  const actions = await roomActions();
-  const roomId = await actions.createRoom('marry123'); // Get the roomId
-  setTimeout(() => {
-    actions.connectRoom(roomId, 'testuser'); // Use the roomId in deleteRoom
-}, 5000);
-  setTimeout(() => {
-      actions.deleteRoom(roomId); // Use the roomId in deleteRoom
-  }, 10000);
-})();
+// Example usage test rooms functionality
+// (async () => {
+//   const actions = await roomActions();
+//   const roomId = await actions.createRoom('marry123'); // Get the roomId
+//   setTimeout(() => {
+//     actions.connectRoom(roomId, 'testuser'); // Use the roomId in deleteRoom
+// }, 5000);
+//   setTimeout(() => {
+//       actions.deleteRoom(roomId); // Use the roomId in deleteRoom
+//   }, 10000);
+// })();
 
 
 export async function trackUsersActions(roomId) {

@@ -11,6 +11,7 @@ import { PrivateRoute } from "./components/PrivateRoute";
 import { AuthTabs } from "./components/authTabs";
 import { GameHistory } from "./components/gameHistory";
 import { GameOnline } from "./components/gameOnline";
+import { OnlineGameType } from "./components/roomsForm";
 
 export const router = createBrowserRouter([
   // Открытые маршруты (авторизация)
@@ -71,6 +72,24 @@ export const router = createBrowserRouter([
         path: "/game",
         element: <Layout />,
         children: [
+          {
+            path: "/lobby",
+            element: <Layout />,
+            children: [
+              {
+                path: 'chooseOnlineMode',
+                element: <OnlineGameType />
+              },
+              {
+                path: "create",
+                element: <Game />,
+              }, 
+              {
+                path: "connect",
+                element: <Game />,
+              }, 
+            ]
+          },
            {
             path: "AI",
             element: <Game />,

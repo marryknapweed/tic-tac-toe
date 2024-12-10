@@ -8,8 +8,9 @@ import "./index.css";
 
 export function Header() {
   // const username = useSelector(state => state.user.username);
-  const username = localStorage.getItem("username")
+  // const username = localStorage.getItem("username")
   const isAdmin = Boolean(localStorage.getItem("role") === 'admin')
+  const username = localStorage.getItem("username")
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);

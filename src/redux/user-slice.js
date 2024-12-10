@@ -110,6 +110,7 @@ const userSlice = createSlice({
         date: new Date(),
         opponent: 'AI',
         user_id: state.id,
+        username: state.username,
         wins: winner
       }
       appendGameHistory(dataTemplate)

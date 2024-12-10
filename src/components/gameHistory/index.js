@@ -10,26 +10,15 @@ export const GameHistory = () => {
   const gameHistory = useSelector(state => state.gameHistory.games);
   const navigate = useNavigate();
 
-  const isAdmin = () => {
-    const role = localStorage.getItem("role");
-    if (role === 'admin') {
-      return true;
-    } else {
-      navigate("/auth/signup");
-      return false; // Return false if not admin
-    }
-  };
-
   useEffect(() => {
     const loadGameHistory = async () => {
-      const games = await fetchGameHistory();
+      const isAdmin = Boolean(localStorage.getItem("role") === 'Admin')
+      const id = localStorage.getItem("id")
+      const games = isAdmin ? await fetchGameHistory() : await fetchGameHistory(id);
       console.log("Fetched games:", games); // Log the fetched games
       dispatch(setGameHistory(games));
     };
-
-    if (isAdmin()) {
       loadGameHistory();
-    }
   }, [dispatch, navigate]); // Add navigate to the dependency array
 
   // Группировка игр по датам
@@ -72,8 +61,11 @@ export const GameHistory = () => {
                     <strong>Who win's:</strong> {game.wins}
                   </p>
                   <p>
-                    <strong>Duration:</strong> {game.duration} seconds
+                    <strong>Username:</strong> {game.username ? game.username: 'user'}
                   </p>
+                  {/* <p>
+                    <strong>Duration:</strong> {game.duration} seconds
+                  </p> */}
                   <p>
                     <strong>Date:</strong>{" "}
                     {new Date(game.date * 1000).toLocaleString()}

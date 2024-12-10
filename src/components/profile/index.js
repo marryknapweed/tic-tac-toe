@@ -1,11 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import "./index.css";
+import { getUserStats } from "../../utils/firestore";
 
 export const Profile = () => {
   // Получаем данные пользователя из Redux
-  const { username, stats } = useSelector(state => state.user);
+  // const { username, stats } = useSelector(state => state.user);
+  const username = localStorage.getItem("username")
+  const id = localStorage.getItem("id")
+
+  const [stats, setStats] = useState({})
+
+  useEffect(() => {
+    getUserStats(id).then((res) => {setStats(res)})
+  }, [])
 
   // Если пользователь не залогинен
   if (!username) {

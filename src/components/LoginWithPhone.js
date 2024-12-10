@@ -23,6 +23,7 @@ export function LoginWithPhone({ config = {} }) {
     phoneNumber: "",
     otp: "",
   });
+  const [userData, setUserData] = useState({})
 
   const navigate = useNavigate();
   const setupRecaptcha = () => {
@@ -61,7 +62,6 @@ export function LoginWithPhone({ config = {} }) {
 
     const phoneError = validatePhoneNumber();
     const isNumberExists = await isNumberExistsInDB(phoneNumber);
-    console.log(isNumberExists);
 
     if (phoneError) {
       setErrors({ phoneNumber: phoneError });
@@ -70,8 +70,10 @@ export function LoginWithPhone({ config = {} }) {
 
     try {
       if (!isNumberExists) {
-        navigate("/sss"); // redirect to registration part !!!! ===========================
+        navigate("/auth/signup"); // redirect to registration part !!!! ===========================
         return;
+      } else {
+        setUserData(isNumberExists[0])
       }
 
       if (!window.recaptchaVerifier) {
@@ -108,7 +110,9 @@ export function LoginWithPhone({ config = {} }) {
       await signInWithCredential(auth, credential);
       console.log("Phone login successful");
 
-      await localStorage.setItem("username", "123"); // Сохраняем имя пользователя
+      localStorage.setItem("username", userData.username);
+      localStorage.setItem("role", userData.role);
+      localStorage.setItem("id", userData.id);
       navigate("/game");
     } catch (error) {
       console.error("Error verifying OTP:", error);

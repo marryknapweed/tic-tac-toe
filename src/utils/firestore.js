@@ -88,15 +88,21 @@ export async function authenticateUser(username, password) {
 
 // Получение истории игр пользователя
 export async function fetchGameHistory(specifiedUser  = undefined) {
-  const gamesCollection = collection(db, "games_history");
+
+  const gamesCollection = collection(db, "games_history")
+  const userFilter = query(
+    gamesCollection,
+    where("user_id", "==", specifiedUser),
+  );
 
   try {
-    const querySnapshot = await getDocs(gamesCollection);
+    const querySnapshot = specifiedUser ? await getDocs(userFilter) : await getDocs(gamesCollection);
     const gamesData = querySnapshot.docs .map(doc => ({
       id: doc.id,
       opponent: doc.data().opponent,
       wins: doc.data().wins,
       user_id: doc.data().user_id,
+      username: doc.data().username,
       date: doc.data().date.seconds // Extracting only the seconds directly
   }));
     

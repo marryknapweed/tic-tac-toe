@@ -308,7 +308,8 @@ export function Game({ player }) {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
   const [currentSquares, setCurrentSquares] = useState(Array(9).fill(null));
-  const scores = useRef({ X: 0, O: 0 });
+  // const scores = useRef({ X: 0, O: 0 });
+  const [scores, setScores] = useState({X: 0, O: 0})
   const [timeUntilChaos, setTimeUntilChaos] = useState(5);
   // const [gameOver, setGameOver] = useState(false);
   const gameOver = useRef(false);
@@ -322,6 +323,26 @@ export function Game({ player }) {
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
 
+  console.log(currentSquares)
+
+  const isUser = () => {
+    const role = localStorage.getItem("role");
+    if (role === 'user') {
+      return true;
+    } else {
+      navigate("/history");
+      return false; // Return false if not admin
+    }
+  };
+
+  useEffect(() => {
+    isUser()
+  }, []); // Add navigate to the dependency arra
+
+
+
+
+
   useEffect(() => {
     if (!username) {
       navigate("/auth/signin");
@@ -330,7 +351,7 @@ export function Game({ player }) {
 
   useEffect(() => {
     const savedScores = getData("scores") || { X: 0, O: 0 };
-    scores.current = savedScores;
+   setScores(savedScores);
   }, []);
 
   useEffect(() => {
@@ -401,6 +422,8 @@ export function Game({ player }) {
     setIsPlayerTurn(true); // Сброс хода на игрока
   }
 
+  console.log(scores)
+
   useEffect(() => {
     if (winner && !winnerUpdated.current) {
       gameOver.current = true;
@@ -408,7 +431,7 @@ export function Game({ player }) {
       // Обновляем счет только один раз за победу
       const newScores = { ...scores };
       newScores[winner.winner] += 1;
-      scores.current = newScores;
+      setScores(newScores)
       winnerUpdated.current = true; // Устанавливаем, что победитель обновлен
 
       // Обновляем статистику игрока
@@ -496,13 +519,11 @@ export function Game({ player }) {
           <div className="game-scores">
             <div className="score-container">
               <p className="score-label">{username}</p>
-              {/* <div className="score">{scores.current.X}</div> */}
-               <div className="score">{0}</div>
+              <div className="score">{scores.X}</div>
             </div>
             <div className="score-container">
               <p className="score-label">AI</p>
-              {/* <div className="score">{scores.current.O}</div> */}
-                   <div className="score">{0}</div>
+              <div className="score">{scores.O}</div>
             </div>
           </div>
 

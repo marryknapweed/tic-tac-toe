@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "history",
-            element: <GameHistory />,
+            element: <GameHistory />, // Admin-only access
           },
         ],
       },

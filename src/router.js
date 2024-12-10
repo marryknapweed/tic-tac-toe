@@ -10,7 +10,8 @@ import { Leaderboard } from "./components/leaderboard";
 import { PrivateRoute } from "./components/PrivateRoute";
 import { AuthTabs } from "./components/authTabs";
 import { GameHistory } from "./components/gameHistory";
-import { GameOnline } from "./components/gameOnline";
+import { ConnectRoom } from "./components/roomsForm/connectForm";
+import { HostRoom } from "./components/roomsForm/hostRoomForm";
 import { OnlineGameType } from "./components/roomsForm";
 
 export const router = createBrowserRouter([
@@ -63,44 +64,32 @@ export const router = createBrowserRouter([
       },
     ],
   },
-
   {
     path: "/game",
     element: <PrivateRoute />, // Проверка авторизации
     children: [
       {
-        path: "/game",
-        element: <Layout />,
+        path: "", // This will match "/game"
+        element: <Layout />, // Only one Layout here
         children: [
+                {
+                  path: 'chooseOnlineMode',
+                  element: <OnlineGameType />
+                },
+                {
+                  path: "create",
+                  element: <HostRoom />,
+                }, 
+                {
+                  path: "connect",
+                  element: <ConnectRoom />,
+                },
           {
-            path: "/lobby",
-            element: <Layout />,
-            children: [
-              {
-                path: 'chooseOnlineMode',
-                element: <OnlineGameType />
-              },
-              {
-                path: "create",
-                element: <Game />,
-              }, 
-              {
-                path: "connect",
-                element: <Game />,
-              }, 
-            ]
-          },
-           {
             path: "AI",
             element: <Game />,
           }, 
-          {
-            path: "Online",
-            element: <GameOnline />,
-          },
         ],
       },
     ],
-  },
-  
+  }
 ]);

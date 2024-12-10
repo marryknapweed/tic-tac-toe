@@ -5,7 +5,7 @@ export function ChooseGameMode() {
 
     const pahts = {
         AI: "/game/AI",
-        Online: "/game/Online"
+        Online: "/game/chooseOnlineMode/lobby"
     };
 
     const title = "Please, choose the gamemode";

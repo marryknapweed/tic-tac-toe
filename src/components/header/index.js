@@ -7,7 +7,8 @@ import { HiOutlineMenuAlt3, HiX } from "react-icons/hi";
 import "./index.css";
 
 export function Header() {
-  const username = useSelector(state => state.user.username);
+  // const username = useSelector(state => state.user.username);
+  const username = localStorage.getItem("username")
   const isAdmin = Boolean(localStorage.getItem("role") === 'admin')
   const dispatch = useDispatch();
   const navigate = useNavigate();

@@ -1,4 +1,5 @@
 import "./index.css"
+import { useNavigate } from "react-router-dom"
 
 export function OnlineGameType () {
 
@@ -7,12 +8,14 @@ export function OnlineGameType () {
     const buttonText_Connect = "Connect to room"
 
     const pahts = {
-        Host: "/lobby/create",
-        Connect: "/lobby/connect"
-    };
+        Host: "/game/create",
+        Connect: "/game/connect"
+      };
+
+    const navigate = useNavigate();
 
     const handleButtonClick = (mode) => {
-
+        return navigate(pahts[mode])
     };
 
     
@@ -24,8 +27,7 @@ export function OnlineGameType () {
                     <button 
                         type="button" 
                         className="auth-button" 
-                        onClick={() => handleButtonClick('Host')}
-                    >
+                        onClick={() => handleButtonClick('Host')}>
                         {buttonText_Host}
                     </button>
                     <button 

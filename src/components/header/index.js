@@ -48,11 +48,11 @@ export function Header() {
       { !isAdmin && (
         <>
         <Link
-          to="/game"
+          to="/chooseGameMode"
           className="header__link"
           onClick={() => setMenuOpen(false)}
         >
-          Game
+          Change gamemode
         </Link>
         <Link
           to="/leaderboard"

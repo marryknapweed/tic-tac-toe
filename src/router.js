@@ -3,12 +3,14 @@ import { createBrowserRouter } from "react-router-dom";
 import { Login } from "./components/SignInForm";
 import { Register } from "./components/SignUpForm";
 import { Game } from "./components/game";
+import { ChooseGameMode } from "./components/chooseMode";
 import { Layout } from "./components/Layout";
 import { Profile } from "./components/profile";
 import { Leaderboard } from "./components/leaderboard";
 import { PrivateRoute } from "./components/PrivateRoute";
 import { AuthTabs } from "./components/authTabs";
 import { GameHistory } from "./components/gameHistory";
+import { GameOnline } from "./components/gameOnline";
 
 export const router = createBrowserRouter([
   // Открытые маршруты (авторизация)
@@ -36,10 +38,14 @@ export const router = createBrowserRouter([
         path: "/",
         element: <Layout />,
         children: [
-          {
-            path: "game",
-            element: <Game />,
-          },
+          // {
+          //   path: "game",
+          //   element: <Game />,
+          // },
+           {
+            path: "chooseGameMode",
+            element: <ChooseGameMode />,
+          }, 
           {
             path: "leaderboard",
             element: <Leaderboard />,
@@ -56,4 +62,26 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
+  {
+    path: "/game",
+    element: <PrivateRoute />, // Проверка авторизации
+    children: [
+      {
+        path: "/game",
+        element: <Layout />,
+        children: [
+           {
+            path: "AI",
+            element: <Game />,
+          }, 
+          {
+            path: "Online",
+            element: <GameOnline />,
+          },
+        ],
+      },
+    ],
+  },
+  
 ]);

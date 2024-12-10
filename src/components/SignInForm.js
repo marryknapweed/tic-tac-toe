@@ -74,7 +74,7 @@ export function Login() {
         localStorage.setItem("id", isAuthenticated.id);
         localStorage.setItem("role", isAuthenticated.role);
         dispatch(login({ username, id: isAuthenticated }));
-        navigate("/game");
+        navigate("/chooseGameMode");
       } else {
         alert("Invalid username or password");
       }
@@ -88,7 +88,7 @@ export function Login() {
       dispatch(
         login({ username: savedUsername, id: localStorage.getItem("id") })
       );
-      navigate("/game");
+      navigate("/chooseGameMode");
     }
   }, [dispatch, navigate]); // Убедитесь, что useEffect выполняется только при монтировании компонента
 

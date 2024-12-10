@@ -1,0 +1,25 @@
+.choose-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  margin: 0;
+}
+
+.choose {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 30px;
+  width: 500px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.auth-button {
+  margin-right: 4px;
+}
+
+.auth-button:last-child {
+  margin-right: 0;
+}

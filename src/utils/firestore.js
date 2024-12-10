@@ -11,6 +11,7 @@ import {
   get,
   addDoc,
   deleteDoc,
+  onSnapshot
 } from "firebase/firestore";
 import generateRoomId from "./generateRoomId";
 
@@ -180,7 +181,7 @@ export async function roomActions() {
       try {
           const usersCollection = collection(db, "online_rooms");
           const querySnapshot = await addDoc(usersCollection, dataTemplate);
-          return dataTemplate.roomId
+          return {roomId: dataTemplate.roomId, docId: querySnapshot.id}
       } catch (error) {
           console.error("Error adding registered user: ", error);
       }
@@ -220,16 +221,23 @@ async function connectRoom(id, username) {
       // Check if any documents were found
       if (!querySnapshot.empty) {
           // Loop through the documents and update player2
-          querySnapshot.forEach(async (docSnapshot) => {
+          let roomData = null; // Initialize a variable to hold room data
+          for (const docSnapshot of querySnapshot.docs) {
               const roomDocRef = docSnapshot.ref; // Get the document reference
               await updateDoc(roomDocRef, { player2: username }); // Update player2 with the username
+              
+              // Get the updated room data
+              roomData = { id: docSnapshot.id, ...docSnapshot.data(), player2: username };
               console.log("Connected to room with ID: ", id);
-          });
+          }
+          return roomData; // Return the room data
       } else {
-          console.log("No room found with ID: ", id);
+          console.log("No room found with ID:", id);
+          return null; // Return null if no room is found
       }
   } catch (error) {
       console.error("Error connecting to room: ", error);
+      throw error; // Optionally rethrow the error for further handling
   }
 }
 
@@ -249,6 +257,27 @@ async function connectRoom(id, username) {
 // })();
 
 
-export async function trackUsersActions(roomId) {
-  
+export async function trackUsersActions() {
+  function awaitForConnect(roomId, updateState) {
+    const roomRef = doc(db, "online_rooms", roomId);
+
+    // Set up a listener for changes to the document
+    const unsubscribe = onSnapshot(roomRef, (doc) => {
+      if (doc.exists()) {
+        const result = doc.data()
+        if (result) {
+          updateState(result.player2)
+        }
+      } else {
+        console.log("No such document!");
+      }
+    }, (error) => {
+      console.error("Error listening to document: ", error);
+    });
+
+    // Return the unsubscribe function for cleanup
+    return unsubscribe;
+  }
+
+  return {awaitForConnect}
 }

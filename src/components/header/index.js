@@ -63,6 +63,13 @@ export function Header() {
         >
           Leaderboard
         </Link>
+        <Link
+          to="/history"
+          className="header__link"
+          onClick={() => setMenuOpen(false)}
+        >
+          Game's History
+        </Link>
         </>
       )}
       

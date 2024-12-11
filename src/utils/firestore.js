@@ -43,18 +43,32 @@ export async function getAllUsers() {
 }
 
 export async function isNumberExistsInDB(phoneNumber) {
+  // Remove the "+" character from the phone number
+  const cleanedNumber = phoneNumber.replace("+", "");
+  
+  // Reference to the users collection
   const usersCollection = collection(db, "users");
+  
+  // Create a query to find the user with the cleaned phone number
   const phoneFilter = query(
     usersCollection,
-    where("phone", "==", parseInt(phoneNumber))
+    where("phone", "==", cleanedNumber)
   );
 
+  // Execute the query
   const queryQS = await getDocs(phoneFilter);
 
+  // Check if any documents were found
   if (queryQS.docs.length > 0) {
-    return true;
+    // Map the documents to extract the desired data
+    const data = queryQS.docs.map(doc => ({
+      id: doc.id,
+      role: doc.data().role, // Use doc.data() to access the document data
+      username: doc.data().username // Use doc.data() to access the document data
+    }));
+    return data; // Return the array of user data
   } else {
-    return false;
+    return false; // Return false if no user was found
   }
 }
 
@@ -88,15 +102,21 @@ export async function authenticateUser(username, password) {
 
 // Получение истории игр пользователя
 export async function fetchGameHistory(specifiedUser  = undefined) {
-  const gamesCollection = collection(db, "games_history");
+
+  const gamesCollection = collection(db, "games_history")
+  const userFilter = query(
+    gamesCollection,
+    where("user_id", "==", specifiedUser),
+  );
 
   try {
-    const querySnapshot = await getDocs(gamesCollection);
+    const querySnapshot = specifiedUser ? await getDocs(userFilter) : await getDocs(gamesCollection);
     const gamesData = querySnapshot.docs .map(doc => ({
       id: doc.id,
       opponent: doc.data().opponent,
       wins: doc.data().wins,
       user_id: doc.data().user_id,
+      username: doc.data().username,
       date: doc.data().date.seconds // Extracting only the seconds directly
   }));
     

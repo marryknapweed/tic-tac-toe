@@ -14,6 +14,7 @@ import { ConnectRoom } from "./components/roomsForm/connectForm";
 import { HostRoom } from "./components/roomsForm/hostRoomForm";
 import { OnlineGameType } from "./components/roomsForm";
 import { LoginWithPhone } from "./components/LoginWithPhone";
+import { GameOnline } from "./components/gameOnline";
 
 export const router = createBrowserRouter([
   // Открытые маршруты (авторизация)
@@ -92,6 +93,10 @@ export const router = createBrowserRouter([
           {
             path: "AI",
             element: <Game />,
+          },
+          {
+            path: "online/:id",
+            element: <GameOnline />,
           }, 
         ],
       },

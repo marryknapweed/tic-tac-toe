@@ -175,7 +175,8 @@ export async function roomActions() {
           p1_role: 'x',
           player2: '',
           p2_role: 'o',
-          roomId: generateRoomId()
+          roomId: generateRoomId(),
+          isStarted: false
       };
       
       try {
@@ -241,7 +242,23 @@ async function connectRoom(id, username) {
   }
 }
 
-  return { createRoom, deleteRoom, connectRoom };
+async function getRoomData(id) {
+  try {
+    const q = query(collection(db, "online_rooms"), where("roomId", "==", id));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.docs.length > 0) {
+      return querySnapshot.docs[0].data();
+    } else {
+      console.log("No such document!");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error getting room data: ", error);
+    return null;
+  }
+}
+
+  return { createRoom, deleteRoom, connectRoom, getRoomData };
 }
 
 // Example usage test rooms functionality
@@ -258,15 +275,14 @@ async function connectRoom(id, username) {
 
 
 export async function trackUsersActions() {
-  function awaitForConnect(roomId, updateState) {
+  const trackDocument = (roomId, field, updateState) => {
     const roomRef = doc(db, "online_rooms", roomId);
 
-    // Set up a listener for changes to the document
     const unsubscribe = onSnapshot(roomRef, (doc) => {
       if (doc.exists()) {
-        const result = doc.data()
+        const result = doc.data();
         if (result) {
-          updateState(result.player2)
+          updateState(result[field]);
         }
       } else {
         console.log("No such document!");
@@ -275,9 +291,11 @@ export async function trackUsersActions() {
       console.error("Error listening to document: ", error);
     });
 
-    // Return the unsubscribe function for cleanup
     return unsubscribe;
-  }
+  };
 
-  return {awaitForConnect}
+  return {
+    awaitForConnect: (roomId, updateState) => trackDocument(roomId, "player2", updateState),
+    awaitForStart: (roomId, updateState) => trackDocument(roomId, "isStarted", updateState),
+  };
 }

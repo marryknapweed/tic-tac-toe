@@ -1,43 +1,63 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from 'react-router-dom';
 import { roomActions, trackUsersActions } from "../../utils/firestore";
-import { doc } from "firebase/firestore";
+import { Timer } from "./timer";
 
 export function HostRoom() {
-
   const [roomId, setRoomId] = useState("Generating...")
   const [docId, setDocId] = useState("")
-  const [connectedPlayer, setConnectedPlayer] = useState('')
-  const title = `Your's room id is: ${roomId}`
+  const [connectedPlayer, setConnectedPlayer] = useState(null)
+  const [isStarted, setIsStarted] = useState(true)
 
-  useEffect(async () => {
-  const actions = await roomActions();
-  const username = localStorage.getItem("username")
-  const roomId = await actions.createRoom(username).then((data) => {setRoomId(data.roomId), setDocId(data.docId)}); // Get the roomId
+  const navigate = useNavigate()
+  const title = `Your's room id is: ${roomId}`
+  const {timeRemaining, setTimeRemaining, uiElement} = Timer()
+
+  const navigateToGame = useCallback(() => {
+    navigate(`/game/online/${roomId}`)
+  }, [navigate, roomId])
+
+  const createRoom = useCallback(async () => {
+    const actions = await roomActions();
+    const username = localStorage.getItem("username")
+    const { roomId: newRoomId, docId: newDocId } = await actions.createRoom(username);
+    setRoomId(newRoomId);
+    setDocId(newDocId);
   }, [])
 
+  const awaitForConnection = useCallback(async () => {
+    if (roomId !== "Generating..." && docId) {
+      const { awaitForConnect } = await trackUsersActions();
+      const unsubscribe = awaitForConnect(docId, (player) => {
+        setConnectedPlayer(player);
+      });
+      return unsubscribe;
+    }
+  }, [roomId, docId]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      if (roomId !== "Generating...") {
-        const dbActions = await trackUsersActions(); // Await the promise to get the object
-        const unsubscribe = dbActions.awaitForConnect(docId, setConnectedPlayer); // Now this should work
+    createRoom();
+  }, [createRoom]);
 
-        // Cleanup function to unsubscribe from the listener
-        return () => {
-          unsubscribe();
-        };
-      }
-    };
+  useEffect(() => {
+    awaitForConnection();
+  }, [awaitForConnection]);
 
-    fetchData(); // Call the async function
-  }, [roomId]);
+  useEffect(() => {
+    if (connectedPlayer && isStarted && timeRemaining === 0) {
+      navigateToGame()
+    }
+  }, [connectedPlayer, isStarted, timeRemaining, navigateToGame]);
 
-    return (
-<div className="auth-wrapper">
+  return (
+    <div className="auth-wrapper">
       <div className="auth">
         <h2>{title}</h2>
         {connectedPlayer && <p>Second player is connected - {connectedPlayer}</p>}
+        {connectedPlayer && <button type="submit" className="auth-button">Start the game!</button>}
+        {isStarted && uiElement()}
         {!connectedPlayer && <p>Waiting for the second player...</p>}
-        </div>
-          </div>
-    );
-  }
+      </div>
+    </div>
+  )
+}

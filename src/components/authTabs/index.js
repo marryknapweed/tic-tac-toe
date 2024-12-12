@@ -2,10 +2,22 @@ import React, { useState } from "react";
 import { Login } from "../SignInForm";
 import { Register } from "../SignUpForm";
 import { LoginWithPhone } from "../LoginWithPhone";
+import { useLocation } from "react-router-dom";
 import "./index.css";
 
 export function AuthTabs() {
-  const [activeTab, setActiveTab] = useState("login");
+
+  const location = useLocation();
+  const currentPath = location.pathname
+
+  const pathWayDictionary = {
+    "/auth": "register",
+    "/auth/signup": "register",
+    "/auth/signin": "login",
+    "/auth/phone": "phone"
+  }
+
+  const [activeTab, setActiveTab] = useState(pathWayDictionary[currentPath]);
 
   const renderTabContent = () => {
     switch (activeTab) {

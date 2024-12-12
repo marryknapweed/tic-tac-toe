@@ -13,6 +13,7 @@ import { GameHistory } from "./components/gameHistory";
 import { ConnectRoom } from "./components/roomsForm/connectForm";
 import { HostRoom } from "./components/roomsForm/hostRoomForm";
 import { OnlineGameType } from "./components/roomsForm";
+import { LoginWithPhone } from "./components/LoginWithPhone";
 
 export const router = createBrowserRouter([
   // Открытые маршруты (авторизация)
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
       {
         path: "signup",
         element: <Register />,
+      },
+      {
+        path: "phone",
+        element: <LoginWithPhone />,
       },
     ],
   },

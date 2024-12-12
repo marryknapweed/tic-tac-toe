@@ -2,22 +2,24 @@ import React, { useState } from "react";
 import { Login } from "../SignInForm";
 import { Register } from "../SignUpForm";
 import { LoginWithPhone } from "../LoginWithPhone";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./index.css";
 
 export function AuthTabs() {
 
   const location = useLocation();
+  const navigate = useNavigate()
   const currentPath = location.pathname
 
   const pathWayDictionary = {
-    "/auth": "register",
     "/auth/signup": "register",
     "/auth/signin": "login",
     "/auth/phone": "phone"
   }
 
-  const [activeTab, setActiveTab] = useState(pathWayDictionary[currentPath]);
+  const tabByLink = pathWayDictionary[currentPath] 
+
+  const [activeTab, setActiveTab] = useState(tabByLink ? tabByLink : "login");
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -32,24 +34,34 @@ export function AuthTabs() {
     }
   };
 
+  const handleButtonClick = (title) => {
+    setActiveTab(title);
+    const path = Object.keys(pathWayDictionary).find(key => pathWayDictionary[key] === title);
+    if (path) {
+      navigate(path);
+    } else {
+      console.error(`No path found for title: ${title}`);
+    }
+  };
+
   return (
     <div className="auth-tabs">
       <div className="tab-buttons">
         <button
           className={`tab-button ${activeTab === "login" ? "active" : ""}`}
-          onClick={() => setActiveTab("login")}
+          onClick={() => handleButtonClick("login")}
         >
           Log In
         </button>
         <button
           className={`tab-button ${activeTab === "register" ? "active" : ""}`}
-          onClick={() => setActiveTab("register")}
+          onClick={() => handleButtonClick("register")}
         >
           Register
         </button>
         <button
           className={`tab-button ${activeTab === "phone" ? "active" : ""}`}
-          onClick={() => setActiveTab("phone")}
+          onClick={() => handleButtonClick("phone")}
         >
           Phone Login
         </button>

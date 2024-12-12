@@ -168,13 +168,13 @@ export async function addRegisteredUser(username, password, phone) {
 
 export async function roomActions() {
   async function createRoom(username) {
+    const emptyArr = Array(9).fill(null)
       const dataTemplate = {
           messages: {},
-          squares: [],
+          squares: emptyArr,
           player1: username, // host
-          p1_role: 'x',
           player2: '',
-          p2_role: 'o',
+          turn: 'p1',
           roomId: generateRoomId(),
           isStarted: false
       };
@@ -242,7 +242,7 @@ async function connectRoom(id, username) {
   }
 }
 
-async function getRoomData(id) {
+const getRoomData = async (id) => {
   try {
     const q = query(collection(db, "online_rooms"), where("roomId", "==", id));
     const querySnapshot = await getDocs(q);
@@ -256,9 +256,65 @@ async function getRoomData(id) {
     console.error("Error getting room data: ", error);
     return null;
   }
-}
+};
 
-  return { createRoom, deleteRoom, connectRoom, getRoomData };
+const updateRoomSquares = async (id, squaresData) => {
+  try {
+    // Create a query to find the document with the specified roomId
+    const q = query(collection(db, "online_rooms"), where("roomId", "==", id));
+    
+    // Get the documents that match the query
+    const querySnapshot = await getDocs(q);
+    
+    // Check if any documents were found
+    if (!querySnapshot.empty) {
+      // Get the first document (assuming roomId is unique)
+      const docRef = querySnapshot.docs[0].ref; // Get the document reference
+      
+      // Update the squares field
+      await updateDoc(docRef, {
+        squares: squaresData // Update the squares field with the new data
+      });
+      
+      console.log("Squares updated successfully");
+    } else {
+      console.error("No document found with the specified roomId");
+    }
+  } catch (error) {
+    console.error("Error updating room squares: ", error);
+    return null;
+  }
+};
+
+const updatePlayerTurn = async (id, currentrole) => {
+  try {
+    // Create a query to find the document with the specified roomId
+    const q = query(collection(db, "online_rooms"), where("roomId", "==", id));
+    
+    // Get the documents that match the query
+    const querySnapshot = await getDocs(q);
+    
+    // Check if any documents were found
+    if (!querySnapshot.empty) {
+      // Get the first document (assuming roomId is unique)
+      const docRef = querySnapshot.docs[0].ref; // Get the document reference
+      
+      // Update the squares field
+      await updateDoc(docRef, {
+        turn: currentrole === "p1" ? "p2" : "p1" // Update the squares field with the new data
+      });
+      
+      console.log("Squares updated successfully");
+    } else {
+      console.error("No document found with the specified roomId");
+    }
+  } catch (error) {
+    console.error("Error updating room squares: ", error);
+    return null;
+  }
+};
+
+  return { createRoom, deleteRoom, connectRoom, getRoomData, updateRoomSquares, updatePlayerTurn};
 }
 
 // Example usage test rooms functionality
@@ -275,27 +331,62 @@ async function getRoomData(id) {
 
 
 export async function trackUsersActions() {
-  const trackDocument = (roomId, field, updateState) => {
-    const roomRef = doc(db, "online_rooms", roomId);
+  const trackDocument = async (roomId, field, updateState, isReqToFind = false) => {
+    let roomRef;
+
+    if (isReqToFind) {
+      console.log("called true")
+        const coll = collection(db, "online_rooms");
+        const q = query(coll, where("roomId", "==", roomId.toString()));
+        try {
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                // Document exists, proceed to update the first matching document
+                console.log("FOUND")
+                const docRef = querySnapshot.docs[0].ref; // Get the reference of the first matching document
+                roomRef = doc(db, "online_rooms", docRef.id);
+            } else {
+                console.log("No such document with the specified roomId!");
+                return null; // Return null or handle the case as needed
+            }
+        } catch (error) {
+            console.error("Error finding document: ", error);
+            return null; // Return null or handle the error as needed
+        }
+    } else {
+        console.log("called false")
+        roomRef = doc(db, "online_rooms", roomId);
+    }
 
     const unsubscribe = onSnapshot(roomRef, (doc) => {
-      if (doc.exists()) {
-        const result = doc.data();
-        if (result) {
-          updateState(result[field]);
+        if (doc.exists()) {
+            const result = doc.data();
+            if (result) {
+                updateState(result[field]);
+            }
+        } else {
+            console.log("No such document!");
         }
-      } else {
-        console.log("No such document!");
-      }
     }, (error) => {
-      console.error("Error listening to document: ", error);
+        console.error("Error listening to document: ", error);
     });
 
-    return unsubscribe;
-  };
+    return unsubscribe; // Return the unsubscribe function
+};
+
+  const updateDocument = async (roomId, field, value) => {
+  const roomRef = doc(db, "online_rooms", roomId);
+  try {
+    await updateDoc(roomRef, { [field]: value });
+  } catch (error) {
+    console.error("Error updating document: ", error);
+  }
+};
 
   return {
     awaitForConnect: (roomId, updateState) => trackDocument(roomId, "player2", updateState),
-    awaitForStart: (roomId, updateState) => trackDocument(roomId, "isStarted", updateState),
+    checkForSquares: (roomId, updateState, bool) => trackDocument(roomId, "squares", updateState, bool),
+    awaitForGameStart: (roomId, updateState, isReqToFind) => trackDocument(roomId, "isStarted", updateState, isReqToFind),
+    startGame: async (roomId) => updateDocument(roomId, "isStarted", true)
   };
 }

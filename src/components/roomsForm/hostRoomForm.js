@@ -7,15 +7,28 @@ export function HostRoom() {
   const [roomId, setRoomId] = useState("Generating...")
   const [docId, setDocId] = useState("")
   const [connectedPlayer, setConnectedPlayer] = useState(null)
-  const [isStarted, setIsStarted] = useState(true)
+  const [isStarted, setIsStarted] = useState(false)
+  const [isBtnDisabled, setIsBtnDisabled] = useState(false)
 
   const navigate = useNavigate()
   const title = `Your's room id is: ${roomId}`
-  const {timeRemaining, setTimeRemaining, uiElement} = Timer()
+  const {timeRemaining, setTimeRemaining, uiElement, setStart} = Timer()
 
   const navigateToGame = useCallback(() => {
     navigate(`/game/online/${roomId}`)
   }, [navigate, roomId])
+
+  const setGameStartDB = async () => {
+    const { startGame } = await trackUsersActions()
+    await startGame(docId)
+  }
+  
+  const handleButtonClick = () => {
+    setIsBtnDisabled(true)
+    setGameStartDB()
+    setIsStarted(true)
+    setStart(true)
+  }
 
   const createRoom = useCallback(async () => {
     const actions = await roomActions();
@@ -54,7 +67,7 @@ export function HostRoom() {
       <div className="auth">
         <h2>{title}</h2>
         {connectedPlayer && <p>Second player is connected - {connectedPlayer}</p>}
-        {connectedPlayer && <button type="submit" className="auth-button">Start the game!</button>}
+        {connectedPlayer && <button type="submit" className="auth-button" onClick={() => handleButtonClick()} disabled={isBtnDisabled}>Start the game!</button>}
         {isStarted && uiElement()}
         {!connectedPlayer && <p>Waiting for the second player...</p>}
       </div>

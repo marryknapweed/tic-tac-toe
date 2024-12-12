@@ -5,14 +5,17 @@ import { updateStats, updateGamesHistory } from "../../redux/user-slice";
 import { useNavigate } from "react-router-dom";
 import { calculateWinner } from "../../utils";
 import { saveData, getData } from "../../utils/localStorage";
-import { roomActions } from "../../utils/firestore";
+import { roomActions, trackUsersActions } from "../../utils/firestore";
 import { Timer } from "../timer";
+import { useLocation } from "react-router-dom";
 import "./index.css";
 
 export function GameOnline({ player }) {
   const dispatch = useDispatch();
   const [sessionData, setSessionData] = useState({})
-  const navigate = useNavigate();
+  const location = useLocation();
+  const navigate = useNavigate()
+  const roomId = location.pathname.split("/")[3]
   const [currentMove, setCurrentMove] = useState(0);
   const [currentSquares, setCurrentSquares] = useState(Array(9).fill(null));
   // const scores = useRef({ X: 0, O: 0 });
@@ -21,18 +24,23 @@ export function GameOnline({ player }) {
   // const [gameOver, setGameOver] = useState(false);
   const gameOver = useRef(false);
   const [gameStarted, setGameStarted] = useState(false); // Состояние для отслеживания начала игры
-  const [isPlayerTurn, setIsPlayerTurn] = useState(true); //Cостояние для хода игрока
+
+  const players = [{name: sessionData.player1, key: "p1"}, {name: sessionData.player2, key: "p2"}]
+  const username = localStorage.getItem("username")
+  const currentRight = players.filter((el) => el.name === username)[0]
+  const playerTurn = currentRight.key
+
+
   const winnerUpdated = useRef(false);
   const xIsNext = currentMove % 2 === 0;
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
 
-  console.log(currentSquares)
-
   useEffect(async () => {
     const actions = await roomActions();
-    const data = await actions.getRoomData("qY8pZ")
+    const data = await actions.getRoomData(roomId)
     console.log(data)
+    setSessionData(data)
   }, [])
 
   useEffect(() => {
@@ -62,33 +70,63 @@ export function GameOnline({ player }) {
     return () => clearInterval(chaosTimer);
   }, [gameOver.current, currentSquares]);
 
-  const chaos = () => {
-    const newSquares = [...currentSquares];
-    for (let i = newSquares.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newSquares[i], newSquares[j]] = [newSquares[j], newSquares[i]];
-    }
+  const updateSquares = async (data) => {
+    const actions = await roomActions();
+    await actions.updateRoomSquares(roomId, data)
+    await actions.updatePlayerTurn(roomId, sessionData.turn)
+  }
 
-    setCurrentSquares(newSquares);
-    setCurrentMove(prevMove => prevMove);
+  const chaos = () => { // edit updated twice
+    // const newSquares = [...currentSquares];
+    // for (let i = newSquares.length - 1; i > 0; i--) {
+    //   const j = Math.floor(Math.random() * (i + 1));
+    //   [newSquares[i], newSquares[j]] = [newSquares[j], newSquares[i]];
+    // }
+
+    // updateSquares(newSquares);
+    // setCurrentMove(prevMove => prevMove);
   };
 
-  function handlePlay(nextSquares, index) {
-    // Проверяем, если игра окончена, клетка уже занята, или ход не игрока
-    if (gameOver.current || nextSquares[index] || !isPlayerTurn) return;
+
+  // const updateSquaresDB = async () => {
+  //   const actions = await roomActions();
+  //   await actions.updateRoomSquares(roomId, currentSquares)
+  // }
+
+  async function handlePlay(nextSquares, index) {
+    // Check if the game is over, the square is already occupied, or it's not the player's turn
+    if (gameOver.current || nextSquares[index] || (isPlayerTurn !== (xIsNext ? "p1" : "p2"))) return;
 
     const updatedSquares = nextSquares.slice();
-    updatedSquares[index] = xIsNext ? "X" : "O"; // Устанавливаем X или O в выбранную клетку
 
-    setCurrentSquares(updatedSquares);
-    setTimeUntilChaos(5); // Сбрасываем таймер хаоса
 
-    if (!gameStarted) {
-      setGameStarted(true);
+ 
+    if (isPlayerTurn == currentRight.key) {
+      updatedSquares[index] = xIsNext ? "X" : "O"; // Set X or O in the selected square
+
+    // Update the squares in the database
+    await updateSquares(updatedSquares);
+
+    // Reset chaos timer
+    setTimeUntilChaos(5);
+
+    // Update the current move
+    setCurrentMove(prevMove => prevMove + 1);
+
     }
+    
+}
 
-    setIsPlayerTurn(false); // Передаем ход AI
+console.log(isPlayerTurn)
+
+  const loadSquaresFromDB = async () => {
+    const actions = await trackUsersActions()
+    await actions.checkForSquares(roomId, setCurrentSquares, true)
   }
+ 
+  useEffect(async () => {
+    loadSquaresFromDB()
+  }, [])
 
   function resetGame() {
     setCurrentMove(0);
@@ -97,7 +135,7 @@ export function GameOnline({ player }) {
     winnerUpdated.current = false;
     setGameStarted(false);
     setTimeUntilChaos(5);
-    setIsPlayerTurn(true); // Сброс хода на игрока
+    setIsPlayerTurn("p1"); // Сброс хода на игрока
   }
 
   console.log(scores)
@@ -141,21 +179,23 @@ export function GameOnline({ player }) {
             <Timer remainingTime={timeUntilChaos} onTimerEnd={handleTimerEnd} />
           )}
           <div className="game-board">
-            <Board
-              xIsNext={currentMove % 2 === 0}
-              squares={currentSquares}
-              onPlay={handlePlay}
-              winnerLine={winner ? winner.line : null}
-            />
+<Board
+  xIsNext={currentMove % 2 === 0}
+  squares={currentSquares}
+  onPlay={handlePlay}
+  winnerLine={winner ? winner.line : null}
+  isPlayerTurn={isPlayerTurn} // Pass the current player's turn
+  sessionData={sessionData}
+/>
           </div>
 
           <div className="game-scores">
             <div className="score-container">
-              <p className="score-label">{'123'}</p>
+              <p className="score-label">{sessionData.player1}</p>
               <div className="score">{scores.X}</div>
             </div>
             <div className="score-container">
-              <p className="score-label">AI</p>
+              <p className="score-label">{sessionData.player2}</p>
               <div className="score">{scores.O}</div>
             </div>
           </div>

@@ -5,14 +5,13 @@ import { Timer } from "./timer";
 import { useNavigate } from "react-router-dom";
 
 export function ConnectRoom () {
-
     const [roomInput, setRoomInput] = useState("")
     const [isConnectedTo, setIsConnectedTo] = useState(false)
     const [connectedPerson, setConnectedPerson] = useState("")
-    const [isStarted, setIsStarted] = useState(true)
+    const [isStarted, setIsStarted] = useState(false)
 
     const title = isConnectedTo ? `Connected to ${connectedPerson} lobby` : "Please ask your friend for room id and write it below"
-    const {timeRemaining, setTimeRemaining, uiElement} = Timer()
+    const {timeRemaining, setTimeRemaining, uiElement, setStart} = Timer()
     const navigate = useNavigate()
     const username = localStorage.getItem("username")
 
@@ -20,65 +19,76 @@ export function ConnectRoom () {
         e.preventDefault();
     
         if (roomInput) {
-        const actions = await roomActions();
-        const data = await actions.connectRoom(roomInput.target.value, username); // Get the roomId
+            const actions = await roomActions();
+            const data = await actions.connectRoom(roomInput, username); // Get the roomId
             if (data) {
                 setIsConnectedTo(true)
                 setConnectedPerson(data.player1)
+                await awaitForConnection(); // Call awaitForConnection here
             }
         }
-      };
+    };
 
-      const navigateToGame = useCallback(() => {
-        navigate(`/game/online/${roomInput.target.value}`)
-      }, [navigate, roomInput])
+    const navigateToGame = useCallback(() => {
+        navigate(`/game/online/${roomInput}`)
+    }, [navigate, roomInput])
     
-      const awaitForConnection = useCallback(async () => {
-        if (isConnectedTo && connectedPerson) {
-          const { awaitForStart } = await trackUsersActions();
-          const unsubscribe = awaitForStart(roomInput.target.value, (state) => {
-            setIsStarted(state);
-          });
-          return unsubscribe;
+    const awaitForConnection = async () => {
+        console.log("called first")
+        const userActions = await trackUsersActions();
+        try {
+          userActions.awaitForGameStart(roomInput, setIsStarted, true);
+        } catch (error) {
+            console.error("Error getting game status: ", error);
         }
-      }, [isConnectedTo, connectedPerson]);
+    }
+    
+    useEffect(() => {
+        if (isStarted) {
+          setStart(true)
+        } // This will log the updated value of isStarted
+    }, [isStarted]);
 
-      useEffect(() => {
-        awaitForConnection();
-      }, [awaitForConnection]);
-
-      useEffect(() => {
+    useEffect(() => {
         if (isStarted && isConnectedTo && connectedPerson && timeRemaining === 0) {
-          navigateToGame()
+            navigateToGame()
         }
-      }, [isStarted, isConnectedTo, connectedPerson, timeRemaining, navigateToGame]);
+    }, [isStarted, isConnectedTo, connectedPerson, timeRemaining, navigateToGame]);
+
+    const generateData = () => {
+      if (isConnectedTo) {
+        if (!isStarted) {
+          return "Waiting for host game start"
+        } else {
+          return uiElement()
+        }
+      } else {
+        return ""
+      }
+    }
     
-
     return (
-    <div className="wrapper">
-      <div className="wrap">
-        <h2>{title}</h2>
-        {isStarted && (
-          uiElement()
-        )}
-        {
-            !isConnectedTo && (
-                <form onSubmit={handleSubmit} className="auth-form">
-                <div className={`input-container`}>
-                    <input
-                      type="text"
-                      placeholder="9dF5T"
-                      onChange={setRoomInput}
-                    />
-                  </div>
-                  <button type="submit" className="auth-button">
-                    Submit
-                  </button>
-                </form>
-
-            )
-        }
+        <div className="wrapper">
+            <div className="wrap">
+                <h2>{title}</h2>
+                {generateData()}
+                {
+                    !isConnectedTo && (
+                        <form onSubmit={handleSubmit} className="auth-form">
+                            <div className={`input-container`}>
+                                <input
+                                    type="text"
+                                    placeholder="9dF5T"
+                                    onChange={e => setRoomInput(e.target.value)} // Update this line
+                                />
+                            </div>
+                            <button type="submit" className="auth-button">
+                                Submit
+                            </button>
+                        </form>
+                    )
+                }
+            </div>
         </div>
-          </div>
-)
+    )
 }

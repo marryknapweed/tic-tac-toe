@@ -8,6 +8,7 @@ import "./index.css";
 
 export function Header() {
   // const username = useSelector(state => state.user.username);
+  // const username = localStorage.getItem("username")
   const isAdmin = Boolean(localStorage.getItem("role") === 'admin')
   const username = localStorage.getItem("username")
   const dispatch = useDispatch();
@@ -49,11 +50,11 @@ export function Header() {
       { !isAdmin && (
         <>
         <Link
-          to="/game"
+          to="/chooseGameMode"
           className="header__link"
           onClick={() => setMenuOpen(false)}
         >
-          Game
+          Change gamemode
         </Link>
         <Link
           to="/leaderboard"
@@ -61,6 +62,13 @@ export function Header() {
           onClick={() => setMenuOpen(false)}
         >
           Leaderboard
+        </Link>
+        <Link
+          to="/history"
+          className="header__link"
+          onClick={() => setMenuOpen(false)}
+        >
+          Game's History
         </Link>
         </>
       )}

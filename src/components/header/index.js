@@ -38,7 +38,7 @@ export function Header() {
   return (
     <header className="header">
       { !isAdmin && (
-         <Link to="/game" className="header__logo">
+         <Link to="/chooseGameMode" className="header__logo">
          Game App
        </Link>
       )}

@@ -9,6 +9,7 @@ import { roomActions, trackUsersActions } from "../../utils/firestore";
 import { Timer } from "../timer";
 import { Timer as RestartTimer } from "../roomsForm/timer";
 import { useLocation } from "react-router-dom";
+import { ChatWindow } from "./chatWindow";
 import "./index.css";
 
 export function GameOnline({ player }) {
@@ -30,7 +31,15 @@ export function GameOnline({ player }) {
   const [isRestartTimerShown, setIsRestartTimerShown] = useState(false)
   const {timeRemaining, setTimeRemaining, uiElement, setStart} = RestartTimer("Game restarts in")
 
+  const [messages, setMessages] = useState([]);
+  const [inputValue, setInputValue] = useState('');
 
+  const handleSendMessage = () => {
+    if (inputValue.trim()) {
+      setMessages([...messages, inputValue]);
+      setInputValue('');
+    }
+  };
 
   const winnerUpdated = useRef(false);
   const xIsNext = currentMove % 2 === 0;
@@ -202,36 +211,37 @@ export function GameOnline({ player }) {
 
   return (
     <div className="game">
-      <div className="game-container">
-        <div className="game-main">
-          {gameStarted && timeUntilChaos > 0 && !gameOver.current && (
-            <Timer remainingTime={timeUntilChaos} onTimerEnd={handleTimerEnd} />
-          )}
-          <div className="game-board">
-<Board
-  xIsNext={currentMove % 2 === 0}
-  squares={currentSquares}
-  onPlay={handlePlay}
-  winnerLine={winner ? winner.line : null}
-  isPlayerTurn={isPlayerTurn} // Pass the current player's turn
-  playerSide={playerSide}
-  sessionData={sessionData}
-/>
-          </div>
-          
-          <div className="game-scores">
-            <div className="score-container">
-              <p className="score-label">{sessionData.player1}</p>
-              <div className="score">{scores.X}</div>
-            </div>
-            <div className="score-container">
-              <p className="score-label">{sessionData.player2}</p>
-              <div className="score">{scores.O}</div>
-            </div>
-          </div>
-          {isRestartTimerShown ? <h2>{uiElement()}</h2> : ''}
+    <div className="game-container">
+      <div className="game-main">
+        {gameStarted && timeUntilChaos > 0 && !gameOver.current && (
+          <Timer remainingTime={timeUntilChaos} onTimerEnd={handleTimerEnd} />
+        )}
+        <div className="game-board">
+          <Board
+            xIsNext={currentMove % 2 === 0}
+            squares={currentSquares}
+            onPlay={handlePlay}
+            winnerLine={winner ? winner.line : null}
+            isPlayerTurn={isPlayerTurn}
+            playerSide={playerSide}
+            sessionData={sessionData}
+          />
         </div>
+        
+        <div className="game-scores">
+          <div className="score-container">
+            <p className="score-label">{sessionData.player1}</p>
+            <div className="score">{scores.X}</div>
+          </div>
+          <div className="score-container">
+            <p className="score-label">{sessionData.player2}</p>
+            <div className="score">{scores.O}</div>
+          </div>
+        </div>
+        {isRestartTimerShown ? <h2>{uiElement()}</h2> : ''}
       </div>
+        <ChatWindow />
     </div>
-  );
-}
+  </div>
+);
+};

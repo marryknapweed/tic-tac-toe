@@ -1,3 +1,7 @@
+.window-placement {
+
+}
+
 .game {
   display: flex;
   flex-direction: column;

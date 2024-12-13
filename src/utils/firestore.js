@@ -386,6 +386,7 @@ export async function trackUsersActions() {
   return {
     awaitForConnect: (roomId, updateState) => trackDocument(roomId, "player2", updateState),
     checkForSquares: (roomId, updateState, bool) => trackDocument(roomId, "squares", updateState, bool),
+    checkForPlayerTurn: (roomId, updateState, bool) => trackDocument(roomId, "turn", updateState, bool),
     awaitForGameStart: (roomId, updateState, isReqToFind) => trackDocument(roomId, "isStarted", updateState, isReqToFind),
     startGame: async (roomId) => updateDocument(roomId, "isStarted", true)
   };

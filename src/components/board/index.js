@@ -48,7 +48,7 @@ import { Square } from "../square";
 import { calculateWinner } from "../../utils";
 import "./index.css";
 
-export function Board({ xIsNext, squares, onPlay, winnerLine, isPlayerTurn, sessionData }) {
+export function Board({ xIsNext, squares, onPlay, winnerLine, isPlayerTurn, playerSide, sessionData}) {
   const renderSquare = (i) => {
     return (
       <Square
@@ -64,9 +64,9 @@ export function Board({ xIsNext, squares, onPlay, winnerLine, isPlayerTurn, sess
     if (squares[i] || calculateWinner(squares)) return;
 
     // Check if it's the player's turn
-    if ((xIsNext && isPlayerTurn === "p1") || (!xIsNext && isPlayerTurn === "p2")) {
+    if (isPlayerTurn === playerSide) {
       const nextSquares = squares.slice();
-      nextSquares[i] = xIsNext ? "X" : "O"; // Place X or O based on the turn
+      nextSquares[i] = playerSide === "p1" ? "X" : "O"; // Place X or O based on the turn
       onPlay(nextSquares); // Call the onPlay function to update the game state
     }
   };

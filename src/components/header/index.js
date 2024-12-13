@@ -11,6 +11,7 @@ export function Header() {
   // const username = localStorage.getItem("username")
   const isAdmin = Boolean(localStorage.getItem("role") === 'admin')
   const username = localStorage.getItem("username")
+  const role = localStorage.getItem("role")
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -76,7 +77,10 @@ export function Header() {
         {username && (
           <div className="header__profile--mobile" onClick={goToProfile}>
             <FaUserCircle className="header__icon" />
+            <div className="username-role-block">
             <span className="header__username">{username}</span>
+            <span className="header__role">{role}</span>
+          </div>
             <button onClick={handleLogout} className="header__logout">
               Log out
             </button>
@@ -86,7 +90,10 @@ export function Header() {
       {username && (
         <div className="header__profile" onClick={goToProfile}>
           <FaUserCircle className="header__icon" />
-          <span className="header__username">{username}</span>
+          <div className="username-role-block">
+            <span className="header__username">{username}</span>
+            <span className="header__role">{role}</span>
+          </div>
           <button onClick={handleLogout} className="header__logout">
             Log out
           </button>

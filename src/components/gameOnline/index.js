@@ -24,11 +24,8 @@ export function GameOnline({ player }) {
   // const [gameOver, setGameOver] = useState(false);
   const gameOver = useRef(false);
   const [gameStarted, setGameStarted] = useState(false); // Состояние для отслеживания начала игры
-
-  const players = [{name: sessionData.player1, key: "p1"}, {name: sessionData.player2, key: "p2"}]
-  const username = localStorage.getItem("username")
-  const currentRight = players.filter((el) => el.name === username)[0]
-  const playerTurn = currentRight.key
+  const [isPlayerTurn, setIsPlayerTurn] = useState("p1")
+  const [playerSide, setPlayerSide] = useState("")
 
 
   const winnerUpdated = useRef(false);
@@ -36,18 +33,29 @@ export function GameOnline({ player }) {
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
 
+  console.log("Whos set", isPlayerTurn, "Player - ", playerSide)
+
   useEffect(async () => {
-    const actions = await roomActions();
-    const data = await actions.getRoomData(roomId)
-    console.log(data)
-    setSessionData(data)
+    defineSession()
   }, [])
+
+
 
   useEffect(() => {
     if (!sessionData) {
       navigate("/auth/signin");
     }
   }, [sessionData, navigate]);
+
+  const defineSession = async () => {
+    const actions = await roomActions();
+    const data = await actions.getRoomData(roomId)
+    setSessionData(data)
+    const players = [{name: data.player1, key: "p1"}, {name: data.player2, key: "p2"}]
+    const username = localStorage.getItem("username")
+    const currentRight = players.filter((el) => el.name === username)[0]
+    setPlayerSide(currentRight.key)
+  }
 
   useEffect(() => {
     const savedScores = getData("scores") || { X: 0, O: 0 };
@@ -73,7 +81,7 @@ export function GameOnline({ player }) {
   const updateSquares = async (data) => {
     const actions = await roomActions();
     await actions.updateRoomSquares(roomId, data)
-    await actions.updatePlayerTurn(roomId, sessionData.turn)
+    await actions.updatePlayerTurn(roomId, isPlayerTurn)
   }
 
   const chaos = () => { // edit updated twice
@@ -93,16 +101,17 @@ export function GameOnline({ player }) {
   //   await actions.updateRoomSquares(roomId, currentSquares)
   // }
 
+
   async function handlePlay(nextSquares, index) {
     // Check if the game is over, the square is already occupied, or it's not the player's turn
-    if (gameOver.current || nextSquares[index] || (isPlayerTurn !== (xIsNext ? "p1" : "p2"))) return;
+    if (gameOver.current || nextSquares[index] || (isPlayerTurn !== playerSide)) return;
 
     const updatedSquares = nextSquares.slice();
 
 
  
-    if (isPlayerTurn == currentRight.key) {
-      updatedSquares[index] = xIsNext ? "X" : "O"; // Set X or O in the selected square
+    if (isPlayerTurn == playerSide) {
+      // updatedSquares[index] = xIsNext ? "X" : "O"; // Set X or O in the selected square
 
     // Update the squares in the database
     await updateSquares(updatedSquares);
@@ -117,11 +126,11 @@ export function GameOnline({ player }) {
     
 }
 
-console.log(isPlayerTurn)
 
   const loadSquaresFromDB = async () => {
     const actions = await trackUsersActions()
     await actions.checkForSquares(roomId, setCurrentSquares, true)
+    await actions.checkForPlayerTurn(roomId, setIsPlayerTurn, true)
   }
  
   useEffect(async () => {
@@ -185,6 +194,7 @@ console.log(isPlayerTurn)
   onPlay={handlePlay}
   winnerLine={winner ? winner.line : null}
   isPlayerTurn={isPlayerTurn} // Pass the current player's turn
+  playerSide={playerSide}
   sessionData={sessionData}
 />
           </div>

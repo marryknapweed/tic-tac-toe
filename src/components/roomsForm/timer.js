@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import "./timer.css"
 
-export function Timer() {
+export function Timer(customText = '') {
   const [timeRemaining, setTimeRemaining] = useState(5);
   const [start, setStart] = useState(false)
-
+  const text = customText ? `${customText} ${timeRemaining} seconds` : `Game starts in ${timeRemaining} seconds`
   useEffect(() => {
     if (start) {
       const intervalId = setInterval(() => {
@@ -21,7 +21,7 @@ export function Timer() {
   const uiElement = () => {
     return (
         <div className='timer-to-game'>
-        <h4>Game starts in {timeRemaining} seconds</h4>
+        <h4>{text}</h4>
       </div>
     )
   }

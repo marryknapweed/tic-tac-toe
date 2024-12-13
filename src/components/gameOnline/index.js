@@ -7,6 +7,7 @@ import { calculateWinner } from "../../utils";
 import { saveData, getData } from "../../utils/localStorage";
 import { roomActions, trackUsersActions } from "../../utils/firestore";
 import { Timer } from "../timer";
+import { Timer as RestartTimer } from "../roomsForm/timer";
 import { useLocation } from "react-router-dom";
 import "./index.css";
 
@@ -26,6 +27,9 @@ export function GameOnline({ player }) {
   const [gameStarted, setGameStarted] = useState(false); // Состояние для отслеживания начала игры
   const [isPlayerTurn, setIsPlayerTurn] = useState("p1")
   const [playerSide, setPlayerSide] = useState("")
+  const [isRestartTimerShown, setIsRestartTimerShown] = useState(false)
+  const {timeRemaining, setTimeRemaining, uiElement, setStart} = RestartTimer("Game restarts in")
+
 
 
   const winnerUpdated = useRef(false);
@@ -75,7 +79,9 @@ export function GameOnline({ player }) {
       });
     }, 1000);
 
-    return () => clearInterval(chaosTimer);
+    return () => {
+      clearInterval(chaosTimer)
+    };
   }, [gameOver.current, currentSquares]);
 
   const updateSquares = async (data) => {
@@ -104,7 +110,7 @@ export function GameOnline({ player }) {
 
   async function handlePlay(nextSquares, index) {
     // Check if the game is over, the square is already occupied, or it's not the player's turn
-    if (gameOver.current || nextSquares[index] || (isPlayerTurn !== playerSide)) return;
+    if (gameOver.current || nextSquares[index] || (isPlayerTurn != playerSide)) return;
 
     const updatedSquares = nextSquares.slice();
 
@@ -137,14 +143,13 @@ export function GameOnline({ player }) {
     loadSquaresFromDB()
   }, [])
 
-  function resetGame() {
+  async function resetGame() {
     setCurrentMove(0);
-    setCurrentSquares(Array(9).fill(null));
-    gameOver.current = false;
     winnerUpdated.current = false;
     setGameStarted(false);
     setTimeUntilChaos(5);
     setIsPlayerTurn("p1"); // Сброс хода на игрока
+    await updateSquares(Array(9).fill(null));
   }
 
   console.log(scores)
@@ -152,6 +157,8 @@ export function GameOnline({ player }) {
   useEffect(() => {
     if (winner && !winnerUpdated.current) {
       gameOver.current = true;
+      setIsRestartTimerShown(true)
+      setStart(true)
 
       // Обновляем счет только один раз за победу
       const newScores = { ...scores };
@@ -171,6 +178,19 @@ export function GameOnline({ player }) {
       dispatch(updateStats({ result: "draws" }));
     }
   }, [winner, winnerUpdated.current, dispatch, isBoardFull, gameOver.current]);
+
+  const handleEndTimer = async () => {
+    await resetGame()
+    await setIsRestartTimerShown(false)
+    gameOver.current = false;
+    setTimeRemaining(5)
+  }
+
+  useEffect(() => {
+    if (timeRemaining === 1) {
+      handleEndTimer()
+    }
+  }, [timeRemaining])
 
 
   // Функция обработчик для завершения таймера
@@ -198,7 +218,7 @@ export function GameOnline({ player }) {
   sessionData={sessionData}
 />
           </div>
-
+          
           <div className="game-scores">
             <div className="score-container">
               <p className="score-label">{sessionData.player1}</p>
@@ -209,11 +229,7 @@ export function GameOnline({ player }) {
               <div className="score">{scores.O}</div>
             </div>
           </div>
-
-          <button type="button" className="reset-button" onClick={resetGame}>
-            Reset Game
-          </button>
-
+          {isRestartTimerShown ? <h2>{uiElement()}</h2> : ''}
         </div>
       </div>
     </div>

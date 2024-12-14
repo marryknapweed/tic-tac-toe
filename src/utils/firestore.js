@@ -170,7 +170,7 @@ export async function roomActions() {
   async function createRoom(username) {
     const emptyArr = Array(9).fill(null)
       const dataTemplate = {
-          messages: {},
+          messages: [],
           squares: emptyArr,
           player1: username, // host
           player2: '',
@@ -314,7 +314,41 @@ const updatePlayerTurn = async (id, currentrole) => {
   }
 };
 
-  return { createRoom, deleteRoom, connectRoom, getRoomData, updateRoomSquares, updatePlayerTurn};
+const updateLobbyMessages = async (id, message) => {
+  try {
+    // Create a query to find the document with the specified roomId
+    const q = query(collection(db, "online_rooms"), where("roomId", "==", id));
+    
+    // Get the documents that match the query
+    const querySnapshot = await getDocs(q);
+    
+    // Check if any documents were found
+    if (!querySnapshot.empty) {
+      // Get the first document (assuming roomId is unique)
+      const docRef = querySnapshot.docs[0].ref; // Get the document reference
+      const currentDocData = querySnapshot.docs[0].data()
+      const currentMessages = currentDocData.messages || {}
+      const messageData = {username: localStorage.getItem("username"), timestamp: Date.now(), content: message}
+      const updated_MessagesData = [
+        ...currentMessages, messageData
+      ]
+      
+      // Update the squares field
+      await updateDoc(docRef, {
+        messages: updated_MessagesData // Update the squares field with the new data
+      });
+      
+      console.log("Squares updated successfully");
+    } else {
+      console.error("No document found with the specified roomId");
+    }
+  } catch (error) {
+    console.error("Error updating room squares: ", error);
+    return null;
+  }
+};
+
+  return { createRoom, deleteRoom, connectRoom, getRoomData, updateRoomSquares, updatePlayerTurn, updateLobbyMessages};
 }
 
 // Example usage test rooms functionality
@@ -335,14 +369,12 @@ export async function trackUsersActions() {
     let roomRef;
 
     if (isReqToFind) {
-      console.log("called true")
         const coll = collection(db, "online_rooms");
         const q = query(coll, where("roomId", "==", roomId.toString()));
         try {
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 // Document exists, proceed to update the first matching document
-                console.log("FOUND")
                 const docRef = querySnapshot.docs[0].ref; // Get the reference of the first matching document
                 roomRef = doc(db, "online_rooms", docRef.id);
             } else {
@@ -354,7 +386,6 @@ export async function trackUsersActions() {
             return null; // Return null or handle the error as needed
         }
     } else {
-        console.log("called false")
         roomRef = doc(db, "online_rooms", roomId);
     }
 
@@ -385,6 +416,8 @@ export async function trackUsersActions() {
 
   return {
     awaitForConnect: (roomId, updateState) => trackDocument(roomId, "player2", updateState),
+    isGameExists: (roomId, updateState, bool) => trackDocument(roomId, "player2", updateState, bool),
+    awaitForMessages: (roomId, updateState, bool) => trackDocument(roomId, "messages", updateState, bool),
     checkForSquares: (roomId, updateState, bool) => trackDocument(roomId, "squares", updateState, bool),
     checkForPlayerTurn: (roomId, updateState, bool) => trackDocument(roomId, "turn", updateState, bool),
     awaitForGameStart: (roomId, updateState, isReqToFind) => trackDocument(roomId, "isStarted", updateState, isReqToFind),

@@ -1,7 +1,7 @@
 import "./connectIndex.css"
 import { roomActions, trackUsersActions } from "../../utils/firestore";
 import { useState, useCallback, useEffect } from "react";
-import { Timer } from "./timer";
+import { useTimer as Timer } from "./timer";
 import { useNavigate } from "react-router-dom";
 
 export function ConnectRoom () {

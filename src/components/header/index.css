@@ -78,6 +78,11 @@
   color: #306732;
 }
 
+.username-role-block {
+  display: flex;
+  flex-direction: column;
+}
+
 .header__username {
   max-width: 150px;
   white-space: nowrap;
@@ -88,14 +93,14 @@
   color: #306732;
 }
 
-.header_role {
+.header__role {
   max-width: 150px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 1.2rem;
   font-weight: thin;
-  color: #306732;
+  color: #6e6e6e;
 }
 
 .header__logout {

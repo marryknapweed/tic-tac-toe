@@ -80,7 +80,7 @@ export const router = createBrowserRouter([
         children: [
                 {
                   path: 'chooseOnlineMode',
-                  element: <OnlineGameType />
+                  element: <OnlineGameType />,
                 },
                 {
                   path: "create",

@@ -3,11 +3,11 @@ import { Board } from "../board";
 import { useDispatch } from "react-redux";
 import { updateStats, updateGamesHistory } from "../../redux/user-slice";
 import { useNavigate } from "react-router-dom";
-import { calculateWinner } from "../../utils";
+import {  culateWinner } from "../../utils";
 import { saveData, getData } from "../../utils/localStorage";
 import { roomActions, trackUsersActions } from "../../utils/firestore";
 import { Timer } from "../timer";
-import { Timer as RestartTimer } from "../roomsForm/timer";
+import { useTimer as RestartTimer } from "../roomsForm/timer";
 import { useLocation } from "react-router-dom";
 import { ChatWindow } from "./chatWindow";
 import "./index.css";
@@ -29,30 +29,29 @@ export function GameOnline({ player }) {
   const [isPlayerTurn, setIsPlayerTurn] = useState("p1")
   const [playerSide, setPlayerSide] = useState("")
   const [isRestartTimerShown, setIsRestartTimerShown] = useState(false)
-  const {timeRemaining, setTimeRemaining, uiElement, setStart} = RestartTimer("Game restarts in")
-
-  const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-
-  const handleSendMessage = () => {
-    if (inputValue.trim()) {
-      setMessages([...messages, inputValue]);
-      setInputValue('');
-    }
-  };
+  const { timeRemaining, setTimeRemaining, uiElement, start, setStart } = RestartTimer("Game restarts in");
 
   const winnerUpdated = useRef(false);
-  const xIsNext = currentMove % 2 === 0;
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
 
-  console.log("Whos set", isPlayerTurn, "Player - ", playerSide)
+  const isLobbyExists = async () => {
+    try {
+      const actions = await trackUsersActions()
+      const result = await actions.isGameExists(roomId, function(){}, true)
+      return result
+    } catch {
+
+    }
+  }
+
+  useEffect(async () => {
+   await isLobbyExists ().then((res) => !res ? navigate("/chooseGameMode") : '')
+  }, [])
 
   useEffect(async () => {
     defineSession()
   }, [])
-
-
 
   useEffect(() => {
     if (!sessionData) {
@@ -61,13 +60,17 @@ export function GameOnline({ player }) {
   }, [sessionData, navigate]);
 
   const defineSession = async () => {
-    const actions = await roomActions();
-    const data = await actions.getRoomData(roomId)
-    setSessionData(data)
-    const players = [{name: data.player1, key: "p1"}, {name: data.player2, key: "p2"}]
-    const username = localStorage.getItem("username")
-    const currentRight = players.filter((el) => el.name === username)[0]
-    setPlayerSide(currentRight.key)
+    try {
+      const actions = await roomActions();
+      const data = await actions.getRoomData(roomId)
+      setSessionData(data)
+      const players = [{name: data.player1, key: "p1"}, {name: data.player2, key: "p2"}]
+      const username = localStorage.getItem("username")
+      const currentRight = players.filter((el) => el.name === username)[0]
+      setPlayerSide(currentRight.key)
+    } catch (e) {
+
+    }
   }
 
   useEffect(() => {
@@ -94,9 +97,13 @@ export function GameOnline({ player }) {
   }, [gameOver.current, currentSquares]);
 
   const updateSquares = async (data) => {
-    const actions = await roomActions();
-    await actions.updateRoomSquares(roomId, data)
-    await actions.updatePlayerTurn(roomId, isPlayerTurn)
+    try {
+      const actions = await roomActions();
+      await actions.updateRoomSquares(roomId, data)
+      await actions.updatePlayerTurn(roomId, isPlayerTurn)
+    } catch {
+
+    }
   }
 
   const chaos = () => { // edit updated twice
@@ -128,8 +135,13 @@ export function GameOnline({ player }) {
     if (isPlayerTurn == playerSide) {
       // updatedSquares[index] = xIsNext ? "X" : "O"; // Set X or O in the selected square
 
+    try {
     // Update the squares in the database
     await updateSquares(updatedSquares);
+    } catch {
+
+    }
+
 
     // Reset chaos timer
     setTimeUntilChaos(5);
@@ -143,9 +155,13 @@ export function GameOnline({ player }) {
 
 
   const loadSquaresFromDB = async () => {
-    const actions = await trackUsersActions()
-    await actions.checkForSquares(roomId, setCurrentSquares, true)
-    await actions.checkForPlayerTurn(roomId, setIsPlayerTurn, true)
+    try {
+      const actions = await trackUsersActions()
+      await actions.checkForSquares(roomId, setCurrentSquares, true)
+      await actions.checkForPlayerTurn(roomId, setIsPlayerTurn, true)
+    } catch {
+
+    }
   }
  
   useEffect(async () => {
@@ -153,15 +169,18 @@ export function GameOnline({ player }) {
   }, [])
 
   async function resetGame() {
-    setCurrentMove(0);
-    winnerUpdated.current = false;
-    setGameStarted(false);
-    setTimeUntilChaos(5);
-    setIsPlayerTurn("p1"); // Сброс хода на игрока
-    await updateSquares(Array(9).fill(null));
+    try {
+      setCurrentMove(0);
+      winnerUpdated.current = false;
+      setGameStarted(false);
+      setTimeUntilChaos(5);
+      setIsPlayerTurn("p1"); // Сброс хода на игрока
+      await updateSquares(Array(9).fill(null));
+    } catch {
+
+    }
   }
 
-  console.log(scores)
 
   useEffect(() => {
     if (winner && !winnerUpdated.current) {
@@ -188,16 +207,27 @@ export function GameOnline({ player }) {
     }
   }, [winner, winnerUpdated.current, dispatch, isBoardFull, gameOver.current]);
 
+  useEffect(() => {
+    if (isBoardFull) {
+      setIsRestartTimerShown(true)
+      setStart(true)
+    }
+  }, [isBoardFull, winner, gameOver.current])
+
   const handleEndTimer = async () => {
-    await resetGame()
-    await setIsRestartTimerShown(false)
-    gameOver.current = false;
-    setTimeRemaining(5)
+    try {
+      await resetGame()
+      await setIsRestartTimerShown(false)
+      gameOver.current = false;
+      setTimeRemaining(5)
+    } catch {
+
+    }
   }
 
   useEffect(() => {
     if (timeRemaining === 1) {
-      handleEndTimer()
+      return handleEndTimer()
     }
   }, [timeRemaining])
 
@@ -209,10 +239,25 @@ export function GameOnline({ player }) {
     }
   };
 
+  const handleGameExit = async () => {
+    try {
+      const actions = await roomActions()
+      await actions.deleteRoom(roomId)
+    } catch {
+      
+    }
+
+  }
+
+
+  const currentRightsPlayer_id = isPlayerTurn === "p1" ? "player1" : "player2" 
+  const currentRightToSet = sessionData[currentRightsPlayer_id]
+  
   return (
     <div className="game">
     <div className="game-container">
       <div className="game-main">
+        <p>Now {currentRightToSet}'s turn</p>
         {gameStarted && timeUntilChaos > 0 && !gameOver.current && (
           <Timer remainingTime={timeUntilChaos} onTimerEnd={handleTimerEnd} />
         )}
@@ -238,9 +283,12 @@ export function GameOnline({ player }) {
             <div className="score">{scores.O}</div>
           </div>
         </div>
-        {isRestartTimerShown ? <h2>{uiElement()}</h2> : ''}
+        <button type="button" className="reset-button" onClick={handleGameExit}>
+            Leave the game
+          </button>
+        {start && timeRemaining > 0 && uiElement()}
       </div>
-        <ChatWindow />
+        {roomId && <ChatWindow roomId={roomId} />}
     </div>
   </div>
 );

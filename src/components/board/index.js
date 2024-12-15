@@ -46,9 +46,13 @@
 import React from "react";
 import { Square } from "../square";
 import { calculateWinner } from "../../utils";
+import { useLocation } from "react-router-dom";
 import "./index.css";
 
-export function Board({ xIsNext, squares, onPlay, winnerLine, isPlayerTurn, playerSide, sessionData}) {
+export function Board({ xIsNext, squares, onPlay, winnerLine, isPlayerTurn, playerSide}) {
+
+  const currentLocation = useLocation().pathname
+
   const renderSquare = (i) => {
     return (
       <Square
@@ -59,17 +63,25 @@ export function Board({ xIsNext, squares, onPlay, winnerLine, isPlayerTurn, play
     );
   };
 
-  const handleClick = (i) => {
-    // Check if the square is already occupied or if there's a winner
-    if (squares[i] || calculateWinner(squares)) return;
 
+  const handleClick = (i) => {
+  // Check if the square is already occupied or if there's a winner
+  if (squares[i] || calculateWinner(squares)) return;
+
+  if (currentLocation.split("/").includes("online")) {
     // Check if it's the player's turn
     if (isPlayerTurn === playerSide) {
       const nextSquares = squares.slice();
       nextSquares[i] = playerSide === "p1" ? "X" : "O"; // Place X or O based on the turn
       onPlay(nextSquares); // Call the onPlay function to update the game state
     }
+
+  } else {
+    const nextSquares = squares.slice();
+    nextSquares[i] = xIsNext ? "X" : "O"; // Ставим крестик или нолик в зависимости от хода
+    onPlay(nextSquares);
   };
+}
 
   return (
     <div className="board">

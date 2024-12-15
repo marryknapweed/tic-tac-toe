@@ -3,7 +3,6 @@ import { Board } from "../board";
 import { useDispatch } from "react-redux";
 import { updateStats, updateGamesHistory } from "../../redux/user-slice";
 import { useNavigate } from "react-router-dom";
-import {  culateWinner } from "../../utils";
 import { saveData, getData } from "../../utils/localStorage";
 import { roomActions, trackUsersActions } from "../../utils/firestore";
 import { Timer } from "../timer";
@@ -11,7 +10,9 @@ import { useTimer as RestartTimer } from "../roomsForm/timer";
 import { useLocation } from "react-router-dom";
 import { ChatWindow } from "./chatWindow";
 import { calculateWinner } from "../../utils";
+import useOnlineStatus from "./onlineCheck";
 import "./index.css";
+import localStorage from "redux-persist/es/storage";
 
 export function GameOnline({ player }) {
   const dispatch = useDispatch();
@@ -19,6 +20,7 @@ export function GameOnline({ player }) {
   const location = useLocation();
   const navigate = useNavigate()
   const roomId = location.pathname.split("/")[3]
+  localStorage.setItem("roomId", roomId)
   const [currentMove, setCurrentMove] = useState(0);
   const [currentSquares, setCurrentSquares] = useState(Array(9).fill(null));
   // const scores = useRef({ X: 0, O: 0 });
@@ -31,26 +33,109 @@ export function GameOnline({ player }) {
   const [playerSide, setPlayerSide] = useState("")
   const [isRestartTimerShown, setIsRestartTimerShown] = useState(false)
   const { timeRemaining, setTimeRemaining, uiElement, start, setStart } = RestartTimer("Game restarts in");
+  const [isGameExist, setIsGameExist] = useState(true)
+  
+  
+  const [isPlayerLeaved, setIsPlayerLeaved] = useState({})
+  const [isTabHidden, setIsTabHidden] = useState({})
+
 
   const winnerUpdated = useRef(false);
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
-
+  const isOnline = useOnlineStatus();
+  useEffect(() => {
+    if (!isOnline) {
+      alert(`Sorry, you or your's opponent has problem with the internet... room will be deleted.`)
+      handleGameExit()
+      navigate('/chooseGameMode')
+    }
+  }, [isOnline])
+  //==========================
 
   useEffect(() => {
 
-    const isLobbyExists = async () => {
-      try {
-        const actions = await trackUsersActions()
-        const result = await actions.isGameExists(roomId, function(){}, true)
-        return result
-      } catch {
-  
-      }
+    const username = localStorage.getItem("username")
+
+    const setHiddenTabStatus = async (value) => {
+      const actions = await trackUsersActions()
+      await actions.hideTabSet(roomId, value, true)
     }
 
-   isLobbyExists ().then((res) => !res ? navigate("/chooseGameMode") : '')
-  }, [])
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        setHiddenTabStatus({status: true, byUsername: username})
+        console.log('Tab is hidden');
+      } else {
+        setHiddenTabStatus({status: false, byUsername: username})
+        console.log('Tab is visible');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const getPlayerLeaveStatus = async () => {
+      const actions = await trackUsersActions()
+      await actions.getPlayerLeaveStatus(roomId, setIsPlayerLeaved, true)
+    }
+    getPlayerLeaveStatus()
+  }, []);
+
+  useEffect(() => {
+    const getHiddenTabStatus = async () => {
+      const actions = await trackUsersActions()
+      await actions.getHiddenTabStatus(roomId, setIsTabHidden, true)
+    }
+    getHiddenTabStatus()
+  }, []);
+
+
+  useEffect(() => {
+    console.log(isPlayerLeaved)
+    if (isPlayerLeaved.status) {
+      const currentNickName = localStorage.getItem("username")
+      if (isPlayerLeaved.byUsername !== currentNickName) {
+        alert(`Sorry, your opponent ${isPlayerLeaved.byUsername} is leaved the game, room will be deleted...`)
+        navigate('/chooseGameMode')
+      }
+    }
+  }, [isPlayerLeaved])
+
+  useEffect(() => {
+    if (isTabHidden.status) {
+      const currentNickName = localStorage.getItem("username")
+      if (isTabHidden.byUsername !== currentNickName) {
+        alert(`Sorry, your opponent ${isTabHidden.byUsername} is changed the tab, please wait a little bit... :)`)
+      }
+    }
+  }, [isTabHidden])
+  //==========================
+
+  useEffect(() => {
+    if (!isGameExist) {
+      navigate("/chooseGameMode")
+    }
+  }, [isGameExist])
+
+
+
+  // const isAuthorizedUser = (accessedNames) => {
+  //   const username = localStorage.getItem("username")
+  //   const role = localStorage.getItem("role")
+  //   const userId = localStorage.getItem("id")
+  //   if (username && role && userId) {
+  //     !accessedNames.includes(username) && navigate("/auth/signin")
+  //   } else {
+  //     return false
+  //   }
+  // }
+
+
 
   useEffect(() => {
     const defineSession = async () => {
@@ -59,6 +144,8 @@ export function GameOnline({ player }) {
         const data = await actions.getRoomData(roomId)
         setSessionData(data)
         const players = [{name: data.player1, key: "p1"}, {name: data.player2, key: "p2"}]
+        // const accessedNames = [data.player1, data.player2]
+        // await isAuthorizedUser(accessedNames)
         const username = localStorage.getItem("username")
         const currentRight = players.filter((el) => el.name === username)[0]
         setPlayerSide(currentRight.key)
@@ -242,15 +329,22 @@ export function GameOnline({ player }) {
     }
   };
 
+  const handleGameDestroy = async () => {
+    const actions = await roomActions()
+    await actions.deleteRoom(roomId)
+  }
+
+
   const handleGameExit = async () => {
     try {
-      const actions = await roomActions()
-      await actions.deleteRoom(roomId)
+      const trackActions = await trackUsersActions()
+      await trackActions.setPlayerLeave(roomId, {status: true, byUsername: localStorage.getItem("username")}, true).then(() => localStorage.removeItem("roomId")).then(() => handleGameDestroy()).then(() => setIsGameExist(false))
     } catch {
       
     }
 
   }
+
 
 
   const currentRightsPlayer_id = isPlayerTurn === "p1" ? "player1" : "player2" 

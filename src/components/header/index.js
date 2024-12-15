@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../redux/user-slice";
 import { FaUserCircle } from "react-icons/fa";
 import { HiOutlineMenuAlt3, HiX } from "react-icons/hi";
+import {ReactComponent as Logo} from "../../svgs/game-logo.svg"
 import "./index.css";
 
 export function Header() {
@@ -35,11 +36,18 @@ export function Header() {
     setMenuOpen(prev => !prev);
   };
 
+
   return (
     <header className="header">
       { !isAdmin && (
-         <Link to="/chooseGameMode" className="header__logo">
-         Game App
+         <Link to="/chooseGameMode">
+          <div className="header__container">
+          <Logo width={60} height={60}/>
+          <div className="header__logo__container">
+            <p className="header__logo__Title">Tic-Tac-Toe</p>
+            <p className="header__logo__underTitle">The game, by marryknapweed</p>
+          </div>
+         </div>
        </Link>
       )}
       <div className="header__burger" onClick={toggleMenu}>

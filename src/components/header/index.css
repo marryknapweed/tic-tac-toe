@@ -16,14 +16,33 @@
   z-index: 1000;
 }
 
-.header__logo {
-  font-size: 1.8rem;
+.header__container {
+  justify-items: center;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 10px
+}
+
+.header__logo__container {
   text-decoration: none;
-  font-weight: bold;
-  color: #306732;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: start;
+  justify-items: start;
+  flex-direction: column;
+}
+
+.header__logo__Title {
+  font-weight: bold;
+  font-size: 2rem;
+  color: white;
+}
+
+.header__logo__underTitle {
+  color: #306732;
+  font-weight: bold;
+  font-size: 0.95rem;
 }
 
 .header__burger {

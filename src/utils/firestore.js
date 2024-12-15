@@ -43,6 +43,7 @@ export async function getAllUsers() {
   }));
 }
 
+
 export async function isNumberExistsInDB(phoneNumber) {
   // Remove the "+" character from the phone number
   const cleanedNumber = phoneNumber.replace("+", "");
@@ -74,20 +75,27 @@ export async function isNumberExistsInDB(phoneNumber) {
 }
 
 // Аутентификация пользователя
-export async function authenticateUser(username, password) {
+export async function authenticateUser (username, password) {
   const usersCollection = collection(db, "users");
   const userFilter = query(
     usersCollection,
     where("username", "==", username),
-    where("password", "==", password)
+    where("password", "==", password),
+    where("isAuthenticated", "==", false)
   );
 
   const queryQS = await getDocs(userFilter);
 
   if (queryQS.docs.length > 0) {
-    const id = queryQS.docs[0].id
-    const role = queryQS.docs[0].data().role
-    return {id, role}
+    const userDoc = queryQS.docs[0];
+    const id = userDoc.id;
+    const role = userDoc.data().role;
+
+    // Update the isAuthenticated field to true
+    const userRef = doc(db, "users", id);
+    await updateDoc(userRef, { isAuthenticated: true });
+
+    return { id, role };
   } else {
     return false;
   }
@@ -176,7 +184,9 @@ export async function roomActions() {
           player2: '',
           turn: 'p1',
           roomId: generateRoomId(),
-          isStarted: false
+          isStarted: false,
+          isPlayerLeaved: {status: false, byUsername: null},
+          isTabHidden: {status: false, byUsername: null}
       };
       
       try {
@@ -393,20 +403,43 @@ export async function trackUsersActions() {
         if (doc.exists()) {
             const result = doc.data();
             if (result) {
+              console.log(result)
                 updateState(result[field]);
             }
         } else {
-            console.log("No such document!");
+          console.log("No such document!");
+          return null
         }
     }, (error) => {
         console.error("Error listening to document: ", error);
+        return null
     });
 
     return unsubscribe; // Return the unsubscribe function
 };
 
-  const updateDocument = async (roomId, field, value) => {
-  const roomRef = doc(db, "online_rooms", roomId);
+  const updateDocument = async (roomId, field, value, isReqToFind = false) => {
+    let roomRef;
+    if (isReqToFind) {
+      const coll = collection(db, "online_rooms");
+      const q = query(coll, where("roomId", "==", roomId.toString()));
+      try {
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+              // Document exists, proceed to update the first matching document
+              const docRef = querySnapshot.docs[0].ref; // Get the reference of the first matching document
+              roomRef = doc(db, "online_rooms", docRef.id);
+          } else {
+              console.log("No such document with the specified roomId!");
+              return null; // Return null or handle the case as needed
+          }
+      } catch (error) {
+          console.error("Error finding document: ", error);
+          return null; // Return null or handle the error as needed
+      }
+  } else {
+      roomRef = doc(db, "online_rooms", roomId);
+  }
   try {
     await updateDoc(roomRef, { [field]: value });
   } catch (error) {
@@ -416,11 +449,14 @@ export async function trackUsersActions() {
 
   return {
     awaitForConnect: (roomId, updateState) => trackDocument(roomId, "player2", updateState),
-    isGameExists: (roomId, updateState, bool) => trackDocument(roomId, "player2", updateState, bool),
     awaitForMessages: (roomId, updateState, bool) => trackDocument(roomId, "messages", updateState, bool),
     checkForSquares: (roomId, updateState, bool) => trackDocument(roomId, "squares", updateState, bool),
     checkForPlayerTurn: (roomId, updateState, bool) => trackDocument(roomId, "turn", updateState, bool),
     awaitForGameStart: (roomId, updateState, isReqToFind) => trackDocument(roomId, "isStarted", updateState, isReqToFind),
-    startGame: async (roomId) => updateDocument(roomId, "isStarted", true)
+    startGame: async (roomId) => updateDocument(roomId, "isStarted", true),
+    hideTabSet: async (roomId, value, isReqToFind) => updateDocument(roomId, "isTabHidden", value, isReqToFind),
+    setPlayerLeave: async (roomId, value, isReqToFind) => updateDocument(roomId, "isPlayerLeaved", value, isReqToFind),
+    getPlayerLeaveStatus: (roomId, updateState, bool) => trackDocument(roomId, "isPlayerLeaved", updateState, bool),
+    getHiddenTabStatus: (roomId, updateState, bool) => trackDocument(roomId, "isTabHidden", updateState, bool),
   };
 }

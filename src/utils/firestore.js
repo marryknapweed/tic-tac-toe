@@ -101,6 +101,26 @@ export async function authenticateUser (username, password) {
   }
 }
 
+export async function deAuthenticateUser () {
+  const id = localStorage.getItem("id");
+  
+  if (!id) {
+    console.error("User  ID not found in local storage.");
+    return false; // Return false if no user ID is found
+  }
+
+  const userRef = doc(db, "users", id); // Reference to the user document
+
+  try {
+    // Update the isAuthenticated field to false
+    await updateDoc(userRef, { isAuthenticated: false });
+    return true; // Return true if the operation was successful
+  } catch (error) {
+    console.error("Error de-authenticating user: ", error);
+    return false; // Return false if there was an error
+  }
+}
+
 // Сохранение результатов игры
 // export async function saveGameResult(id, gameData) {
 //   const userRef = doc(db, "users", id);
@@ -185,8 +205,9 @@ export async function roomActions() {
           turn: 'p1',
           roomId: generateRoomId(),
           isStarted: false,
-          isPlayerLeaved: {status: false, byUsername: null},
-          isTabHidden: {status: false, byUsername: null}
+          isPlayerLeaved: {status: false, byUsername: ''},
+          isPlayerDisconnected: {status: false, byUsername: ''},
+          isTabHidden: {status: false, byUsername: ''}
       };
       
       try {
@@ -403,7 +424,6 @@ export async function trackUsersActions() {
         if (doc.exists()) {
             const result = doc.data();
             if (result) {
-              console.log(result)
                 updateState(result[field]);
             }
         } else {
@@ -458,5 +478,27 @@ export async function trackUsersActions() {
     setPlayerLeave: async (roomId, value, isReqToFind) => updateDocument(roomId, "isPlayerLeaved", value, isReqToFind),
     getPlayerLeaveStatus: (roomId, updateState, bool) => trackDocument(roomId, "isPlayerLeaved", updateState, bool),
     getHiddenTabStatus: (roomId, updateState, bool) => trackDocument(roomId, "isTabHidden", updateState, bool),
+    setDisconnected: async (roomId, value, isReqToFind) => updateDocument(roomId, "isPlayerDisconnected", value, isReqToFind),
+    getIfDisconnected: (roomId, updateState, bool) => trackDocument(roomId, "isPlayerDisconnected", updateState, bool),
   };
 }
+
+// async function clearCollection(collectionName) {
+//   const collectionRef = collection(db, collectionName);
+//   const querySnapshot = await getDocs(collectionRef);
+
+//   const deletePromises = [];
+//   querySnapshot.forEach((doc) => {
+//       // Push the delete promise to the array
+//       deletePromises.push(deleteDoc(doc.ref));
+//   });
+
+//   // Wait for all delete operations to complete
+//   await Promise.all(deletePromises);
+//   console.log(`Collection ${collectionName} cleared successfully.`);
+// }
+
+// // Usage
+// clearCollection("online_rooms")
+//   .then(() => console.log("Collection cleared"))
+//   .catch((error) => console.error("Error clearing collection: ", error));

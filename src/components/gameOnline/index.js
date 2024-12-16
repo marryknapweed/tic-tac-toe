@@ -12,7 +12,6 @@ import { ChatWindow } from "./chatWindow";
 import { calculateWinner } from "../../utils";
 import useOnlineStatus from "./onlineCheck";
 import "./index.css";
-import localStorage from "redux-persist/es/storage";
 
 export function GameOnline({ player }) {
   const dispatch = useDispatch();
@@ -38,25 +37,19 @@ export function GameOnline({ player }) {
   
   const [isPlayerLeaved, setIsPlayerLeaved] = useState({})
   const [isTabHidden, setIsTabHidden] = useState({})
+  const [isDisconnected, setIsDisconnected] = useState({})
 
 
   const winnerUpdated = useRef(false);
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
   const isOnline = useOnlineStatus();
-  useEffect(() => {
-    if (!isOnline) {
-      alert(`Sorry, you or your's opponent has problem with the internet... room will be deleted.`)
-      handleGameExit()
-      navigate('/chooseGameMode')
-    }
-  }, [isOnline])
-  //==========================
+
+  //----DB setters
 
   useEffect(() => {
 
     const username = localStorage.getItem("username")
-
     const setHiddenTabStatus = async (value) => {
       const actions = await trackUsersActions()
       await actions.hideTabSet(roomId, value, true)
@@ -65,10 +58,8 @@ export function GameOnline({ player }) {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         setHiddenTabStatus({status: true, byUsername: username})
-        console.log('Tab is hidden');
       } else {
         setHiddenTabStatus({status: false, byUsername: username})
-        console.log('Tab is visible');
       }
     };
 
@@ -78,6 +69,22 @@ export function GameOnline({ player }) {
     };
   }, []);
 
+  useEffect(() => {
+
+    const setDisconnected = async () => {
+      const actions = await trackUsersActions()
+      await actions.setDisconnected(roomId, {status: true, byUsername: localStorage.getItem("username")}, true)
+    }
+
+    if (!isOnline) {
+      setDisconnected()
+    }
+  }, [isOnline]);
+
+  //----DB setters
+
+
+  //----DB getters
   useEffect(() => {
     const getPlayerLeaveStatus = async () => {
       const actions = await trackUsersActions()
@@ -94,9 +101,17 @@ export function GameOnline({ player }) {
     getHiddenTabStatus()
   }, []);
 
-
   useEffect(() => {
-    console.log(isPlayerLeaved)
+    const getIsDisconnected = async () => {
+      const actions = await trackUsersActions()
+      await actions.getIfDisconnected(roomId, setIsDisconnected, true)
+    }
+    getIsDisconnected()
+  }, []);
+  //----DB getters
+
+  //----DB triggers actions
+  useEffect(() => {
     if (isPlayerLeaved.status) {
       const currentNickName = localStorage.getItem("username")
       if (isPlayerLeaved.byUsername !== currentNickName) {
@@ -114,13 +129,32 @@ export function GameOnline({ player }) {
       }
     }
   }, [isTabHidden])
-  //==========================
+  
+
+  useEffect(() => {
+    if (isDisconnected.status) {
+      const currentNickName = localStorage.getItem("username")
+      if (isDisconnected.byUsername !== currentNickName) {
+        alert(`Sorry, your opponent ${isDisconnected.byUsername} is disconnected from the internet, room will be deleted...`)
+        localStorage.removeItem("roomId")
+        handleGameDestroy()
+        setIsGameExist(false) 
+      } else {
+        alert(`Sorry, you is disconnected from the internet, room was deleted`)
+        localStorage.removeItem("roomId")
+        handleGameDestroy()
+        setIsGameExist(false) 
+      }
+    }
+  }, [isDisconnected])
 
   useEffect(() => {
     if (!isGameExist) {
       navigate("/chooseGameMode")
     }
   }, [isGameExist])
+
+  //----DB triggers actions
 
 
 
@@ -284,12 +318,15 @@ export function GameOnline({ player }) {
       setScores(newScores)
       winnerUpdated.current = true; // Устанавливаем, что победитель обновлен
 
+
+      const currentUserName = localStorage.getItem("username")
+      const isOppositePlayerLeaved = Boolean(isDisconnected.byUsername !== currentUserName && isPlayerLeaved.byUsername !== currentUserName)
       // Обновляем статистику игрока
         dispatch(
-          updateStats({ result: winner.winner === "X" ? "wins" : "losses" }),
+          updateStats({ result: winner.winner === "X" ? "wins" : "losses", opponent: sessionData.player2}),
         );
         dispatch(
-          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses" })
+          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses", opponent: sessionData.player2, isAutomaticWin: isOppositePlayerLeaved })
         );
     } else if (!winner && isBoardFull && !gameOver.current) {
       gameOver.current = true
@@ -310,6 +347,7 @@ export function GameOnline({ player }) {
         await resetGame()
         await setIsRestartTimerShown(false)
         gameOver.current = false;
+        setStart(false)
         setTimeRemaining(5)
       } catch {
   
@@ -317,7 +355,7 @@ export function GameOnline({ player }) {
     }  
 
     if (timeRemaining === 1) {
-      return handleEndTimer()
+      handleEndTimer()
     }
   }, [timeRemaining])
 
@@ -330,15 +368,17 @@ export function GameOnline({ player }) {
   };
 
   const handleGameDestroy = async () => {
+    localStorage.removeItem("roomId")
     const actions = await roomActions()
     await actions.deleteRoom(roomId)
+    setIsGameExist(false)
   }
 
 
   const handleGameExit = async () => {
     try {
       const trackActions = await trackUsersActions()
-      await trackActions.setPlayerLeave(roomId, {status: true, byUsername: localStorage.getItem("username")}, true).then(() => localStorage.removeItem("roomId")).then(() => handleGameDestroy()).then(() => setIsGameExist(false))
+      await trackActions.setPlayerLeave(roomId, {status: true, byUsername: localStorage.getItem("username")}, true).then(() => localStorage.removeItem("roomId")).then(() => handleGameDestroy())
     } catch {
       
     }
@@ -383,7 +423,7 @@ export function GameOnline({ player }) {
         <button type="button" className="reset-button" onClick={handleGameExit}>
             Leave the game
           </button>
-        {start && timeRemaining > 0 && uiElement()}
+        {start && timeRemaining > 1 && uiElement()}
       </div>
         {roomId && <ChatWindow roomId={roomId} />}
     </div>

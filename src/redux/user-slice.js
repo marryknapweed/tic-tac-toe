@@ -53,7 +53,7 @@
 // export const userReducer = userSlice.reducer;
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { appendGameHistory, getUserStats, saveUserStats } from "../utils/firestore";
+import { appendGameHistory, deAuthenticateUser, getUserStats, saveUserStats, trackUsersActions } from "../utils/firestore";
 
 // Исходное состояние пользователя
 const initialState = {
@@ -104,13 +104,15 @@ const userSlice = createSlice({
     },
 
     updateGamesHistory(state, action) {
-      const {result} = action.payload
-      const winner = result === 'wins' ? 'user' : 'AI'
+      const {result, opponent, isAutomaticWin} = action.payload
+      const user = localStorage.getItem("username")
+      const winner = result === 'wins' ? user : opponent
+      const opposite = isAutomaticWin ? user : opponent !== 'AI' ? opponent : 'AI'
       const dataTemplate = {
         date: new Date(),
-        opponent: 'AI',
-        user_id: state.id,
-        username: state.username,
+        opponent: opposite,
+        user_id: localStorage.getItem("id"),
+        username: user,
         wins: winner
       }
       appendGameHistory(dataTemplate)
@@ -118,6 +120,7 @@ const userSlice = createSlice({
 
     // Логаут пользователя
     logout(state) {
+      deAuthenticateUser()
       state.username = null;
       state.id = null;
       state.stats = { wins: 0, losses: 0, draws: 0 }; // Сбрасываем статистику

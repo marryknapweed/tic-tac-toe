@@ -59,6 +59,13 @@ export function Header() {
       { !isAdmin && (
         <>
         <Link
+          to="/bugReport"
+          className="header__link"
+          onClick={() => setMenuOpen(false)}
+        >
+         Find a bug?
+        </Link>
+        <Link
           to="/chooseGameMode"
           className="header__link"
           onClick={() => setMenuOpen(false)}

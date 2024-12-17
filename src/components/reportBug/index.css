@@ -1,0 +1,8 @@
+.test-func {
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    margin-top: 50%;
+    flex-direction: column;
+    color: rgb(36, 0, 0);
+}

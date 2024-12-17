@@ -23,9 +23,12 @@ import { RouterProvider } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./redux/store"; // Только store
 import { router } from "./router";
+import { useEffect } from "react";
 import "./styles.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
+
+
 
 root.render(
   <Provider store={store}>

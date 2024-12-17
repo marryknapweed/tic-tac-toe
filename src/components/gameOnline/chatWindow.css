@@ -1,0 +1,108 @@
+.chat-header {
+    text-align: center;
+    margin: 10px;
+    gap: 5px;
+}
+
+.chat-window {
+    right: 20px;
+    top: 70px; /* Adjust based on your layout */
+    width: 350px; /* Width of the chat window */
+    max-height: auto; /* Max height of the chat window */
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .chat-messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    border-bottom: 1px solid #a8edea;
+  }
+  
+  .chat-input {
+    display: flex;
+    padding: 10px;
+  }
+  
+  .chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #a8edea;
+    border-radius: 4px;
+    margin-right: 10px;
+  }
+  
+  .chat-input button {
+    padding: 10px;
+    background-color: #a8edea;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .chat-input button:hover {
+    background-color: #fed6e3;
+  }
+
+  .chat-messages {
+    display: flex;
+    flex-direction: column; /* Stack messages vertically */
+    width: 100%; /* Ensure the chat takes full width */
+    max-height: 700px; /* Optional: limit height for scrolling */
+    overflow-y: auto; /* Enable scrolling if messages exceed max height */
+    padding: 10px; /* Optional: padding for the chat container */
+  }
+  
+  .current-pl-message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Aligns items inside the message to the end (right) */
+    background: linear-gradient(135deg,  #ff9ebd,#ffb0c9);
+    margin: 5px; /* Add some spacing between messages */
+    padding: 10px; /* Add padding for better appearance */
+    border-radius: 5px; /* Optional: rounded corners */
+    max-width: 70%; /* Limit the width of the message */
+    color: white; /* Text color for better contrast */
+    margin-left: auto; /* Pushes the message to the right */
+    word-break: break-all;
+  }
+  
+  .opponent-pl-message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Aligns items inside the message to the start (left) */
+    background: linear-gradient(135deg,  #a8edea,#69e4de);
+    margin: 5px; /* Add some spacing between messages */
+    padding: 10px; /* Add padding for better appearance */
+    border-radius: 5px; /* Optional: rounded corners */
+    max-width: 70%; /* Limit the width of the message */
+    color: white; /* Text color for better contrast */
+    margin-right: auto; /* Pushes the message to the left */
+    word-break: break-all;
+  }
+
+  .msg-add-content-current, .msg-add-content-opponent {
+    display: flex;
+    font-size: 12px;
+    gap: 5px;
+    margin-top: 2px;
+  }
+
+  .msg-add-content-opponent {
+    color: #305f7e
+  }
+
+  .msg-add-content-current {
+    color: rgb(175, 72, 72);
+  }
+
+  .msg-user {
+    max-width: 70%;
+  }
+  

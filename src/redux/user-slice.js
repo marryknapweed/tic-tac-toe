@@ -53,7 +53,7 @@
 // export const userReducer = userSlice.reducer;
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { appendGameHistory, getUserStats, saveUserStats } from "../utils/firestore";
+import { appendGameHistory, deAuthenticateUser, getUserStats, saveUserStats, trackUsersActions } from "../utils/firestore";
 
 // Исходное состояние пользователя
 const initialState = {
@@ -104,20 +104,36 @@ const userSlice = createSlice({
     },
 
     updateGamesHistory(state, action) {
-      const {result} = action.payload
-      const winner = result === 'wins' ? 'user' : 'AI'
-      const dataTemplate = {
-        date: new Date(),
-        opponent: 'AI',
-        user_id: state.id,
-        username: state.username,
-        wins: winner
+      const { result, opponent, isAutomaticWin, type } = action.payload;
+      const user = localStorage.getItem("username");
+      const userId = localStorage.getItem("id");
+  
+      // Check if user and userId are available
+      if (!user || !userId) {
+          console.error("User  or User ID not found in local storage.");
+          return;
       }
-      appendGameHistory(dataTemplate)
-    },
+  
+      const winner = result === 'wins' ? user : opponent;
+      const opposite = !isAutomaticWin ? user : (opponent !== 'AI' ? opponent : 'AI');
+      const currentData = new Date()
+  
+      const dataTemplate = {
+          date: new Date(),
+          opponent: opposite,
+          user_id: userId,
+          username: user,
+          wins: winner,
+          type: type || 'offline' // Default to 'offline' if type is not provided
+      };
+  
+      console.log(dataTemplate);
+      appendGameHistory(dataTemplate);
+  },
 
     // Логаут пользователя
     logout(state) {
+      deAuthenticateUser()
       state.username = null;
       state.id = null;
       state.stats = { wins: 0, losses: 0, draws: 0 }; // Сбрасываем статистику

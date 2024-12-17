@@ -439,7 +439,7 @@ export function Game({ player }) {
           updateStats({ result: winner.winner === "X" ? "wins" : "losses" }),
         );
         dispatch(
-          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses" })
+          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses", opponent: 'AI', isAutomaticWin: false, type: 'offline' })
         );
     } else if (!winner && isBoardFull && !gameOver.current) {
       gameOver.current = true

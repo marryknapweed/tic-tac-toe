@@ -63,9 +63,9 @@ export const GameHistory = () => {
                   <p>
                     <strong>Username:</strong> {game.username ? game.username: 'user'}
                   </p>
-                  {/* <p>
-                    <strong>Duration:</strong> {game.duration} seconds
-                  </p> */}
+                  <p>
+                    <strong>Gamemode:</strong> {game.type}
+                  </p>
                   <p>
                     <strong>Date:</strong>{" "}
                     {new Date(game.date * 1000).toLocaleString()}

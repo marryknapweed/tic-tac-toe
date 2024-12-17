@@ -104,19 +104,32 @@ const userSlice = createSlice({
     },
 
     updateGamesHistory(state, action) {
-      const {result, opponent, isAutomaticWin} = action.payload
-      const user = localStorage.getItem("username")
-      const winner = result === 'wins' ? user : opponent
-      const opposite = isAutomaticWin ? user : opponent !== 'AI' ? opponent : 'AI'
-      const dataTemplate = {
-        date: new Date(),
-        opponent: opposite,
-        user_id: localStorage.getItem("id"),
-        username: user,
-        wins: winner
+      const { result, opponent, isAutomaticWin, type } = action.payload;
+      const user = localStorage.getItem("username");
+      const userId = localStorage.getItem("id");
+  
+      // Check if user and userId are available
+      if (!user || !userId) {
+          console.error("User  or User ID not found in local storage.");
+          return;
       }
-      appendGameHistory(dataTemplate)
-    },
+  
+      const winner = result === 'wins' ? user : opponent;
+      const opposite = !isAutomaticWin ? user : (opponent !== 'AI' ? opponent : 'AI');
+      const currentData = new Date()
+  
+      const dataTemplate = {
+          date: new Date(),
+          opponent: opposite,
+          user_id: userId,
+          username: user,
+          wins: winner,
+          type: type || 'offline' // Default to 'offline' if type is not provided
+      };
+  
+      console.log(dataTemplate);
+      appendGameHistory(dataTemplate);
+  },
 
     // Логаут пользователя
     logout(state) {

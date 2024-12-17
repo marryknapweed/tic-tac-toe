@@ -146,6 +146,7 @@ export async function fetchGameHistory(specifiedUser  = undefined) {
       wins: doc.data().wins,
       user_id: doc.data().user_id,
       username: doc.data().username,
+      type: doc.data().type,
       date: doc.data().date.seconds // Extracting only the seconds directly
   }));
     
@@ -499,6 +500,6 @@ export async function trackUsersActions() {
 // }
 
 // // Usage
-// clearCollection("online_rooms")
+// clearCollection("games_history")
 //   .then(() => console.log("Collection cleared"))
 //   .catch((error) => console.error("Error clearing collection: ", error));

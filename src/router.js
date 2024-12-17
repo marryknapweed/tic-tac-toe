@@ -15,6 +15,7 @@ import { HostRoom } from "./components/roomsForm/hostRoomForm";
 import { OnlineGameType } from "./components/roomsForm";
 import { LoginWithPhone } from "./components/LoginWithPhone";
 import { GameOnline } from "./components/gameOnline";
+import { BugReport } from "./components/reportBug";
 
 export const router = createBrowserRouter([
   // Открытые маршруты (авторизация)
@@ -65,6 +66,10 @@ export const router = createBrowserRouter([
           {
             path: "history",
             element: <GameHistory />, // Admin-only access
+          },
+          {
+            path: "bugReport",
+            element: <BugReport />, // Admin-only access
           },
         ],
       },

@@ -320,13 +320,15 @@ export function GameOnline({ player }) {
 
 
       const currentUserName = localStorage.getItem("username")
+      const opponent = [sessionData.player1, sessionData.player2].filter((name) => name !== currentUserName)[0]
       const isOppositePlayerLeaved = Boolean(isDisconnected.byUsername !== currentUserName && isPlayerLeaved.byUsername !== currentUserName)
+      
       // Обновляем статистику игрока
         dispatch(
-          updateStats({ result: winner.winner === "X" ? "wins" : "losses", opponent: sessionData.player2}),
+          updateStats({ result: winner.winner === "X" ? "wins" : "losses"}),
         );
         dispatch(
-          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses", opponent: sessionData.player2, isAutomaticWin: isOppositePlayerLeaved })
+          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses", opponent: opponent, isAutomaticWin: isOppositePlayerLeaved, type: 'online' })
         );
     } else if (!winner && isBoardFull && !gameOver.current) {
       gameOver.current = true

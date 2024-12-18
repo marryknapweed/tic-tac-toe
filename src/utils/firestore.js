@@ -25,7 +25,7 @@ export async function saveUserStats(id, stats) {
 export async function getUserStats(id) {
   const userRef = doc(db, "users", id);
   const docSnap = await getDoc(userRef);
-
+  console.log(docSnap.data())
   if (docSnap.exists()) {
     return docSnap.data().stats || { wins: 0, losses: 0, draws: 0 };
   }
@@ -214,6 +214,7 @@ export async function addRegisteredUser(username, password, phone) {
     phone,
     role: "user",
     stats: defaults,
+    isAuthenticated: false,
     games: [],
   };
 

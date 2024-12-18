@@ -92,14 +92,13 @@ const userSlice = createSlice({
           [result]: state.stats[result] + 1, // Увеличиваем счетчик на 1
         };
       }
-
-      console.log(state.id)
-
       // Если есть id пользователя, сохраняем обновленную статистику в Firestore
-      if (state.id && typeof state.id === 'string') {
-        saveUserStats(state.id, state.stats);
+      const userId = localStorage.getItem("id")
+      if (userId) {
+        // saveUserStats(state.id, state.stats);
+        saveUserStats(userId, state.stats)
     } else {
-        console.error('Invalid user ID:', state.id);
+        console.error('Invalid user ID:', userId);
     }
     },
 

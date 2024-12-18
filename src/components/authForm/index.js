@@ -131,7 +131,7 @@ export function AuthForm({ config }) {
             >
               <input
                 type="text"
-                placeholder="phoneNumber"
+                placeholder="Phone number"
                 value={phoneNumber}
                 onChange={handlePhoneNumber}
               />

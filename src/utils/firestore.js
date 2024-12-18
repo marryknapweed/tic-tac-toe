@@ -74,6 +74,36 @@ export async function isNumberExistsInDB(phoneNumber) {
   }
 }
 
+export async function isUserAccountExists(username, phoneNumber) {
+  // Remove the "+" character from the phone number
+  const cleanedNumber = phoneNumber.replace("+", "");
+  
+  // Reference to the users collection
+  const usersCollection = collection(db, "users");
+  
+  // Create a query to find the user with the cleaned phone number
+  const nameFilter = query(
+    usersCollection,
+    where("username", "==", username)
+  );
+
+  const phoneFilter = query(
+    usersCollection,
+    where("phone", "==", cleanedNumber)
+  );
+
+  // Execute the query
+  const phoneExists = await getDocs(phoneFilter);
+  const nameExists = await getDocs (nameFilter)
+  // Check if any documents were found
+  if (phoneExists.docs.length > 0 || nameExists.docs.length > 0) {
+    return true;
+  } else {
+    return false; // Return false if no user was found
+  }
+}
+
+
 // Аутентификация пользователя
 export async function authenticateUser (username, password) {
   const usersCollection = collection(db, "users");
@@ -191,6 +221,7 @@ export async function addRegisteredUser(username, password, phone) {
     const usersCollection = collection(db, "users");
     const querySnapshot = await addDoc(usersCollection, combinedData);
   } catch (error) {
+    return false
     console.error("Error adding registered user: ", error);
   }
 }

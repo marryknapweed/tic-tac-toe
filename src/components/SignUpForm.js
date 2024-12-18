@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { saveData, getData } from "../utils/localStorage";
 import { useNavigate } from "react-router-dom";
 import { AuthForm } from "../components/authForm";
-import { addRegisteredUser } from "../utils/firestore";
+import { addRegisteredUser, isUserAccountExists } from "../utils/firestore";
 
 export function Register() {
   const [username, setUsername] = useState("");
@@ -10,24 +10,49 @@ export function Register() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const navigate = useNavigate();
 
-  const handleRegister = () => {
-    const existingUsers = getData("users") || {};
-    if (existingUsers[username]) {
-      alert("A user with the same name already exists!");
+  const handleRegister = async () => {
+    // const existingUsers = getData("users") || {};
+    // if (existingUsers[username]) {
+
+    const validatePhoneNumber = (phoneNumber) => {
+      // Regex to match the specified phone number formats without spaces
+      const phoneRegex = /^(?:\+?\d{1,3}\d{2}\d{3}\d{2}\d{2}|8\d{3}\d{2}\d{2}\d{2})$/;
+    
+      if (!phoneNumber) {
+        return "Phone number required.";
+      } else if (!phoneRegex.test(phoneNumber)) {
+        return "Invalid phone number format.";
+      }
+      return "";
+    };
+      const numberErr = validatePhoneNumber(phoneNumber)
+
+    if (numberErr) {
+      alert("Wrong number format, please check it out and try again");
       return;
     }
 
-    const updatedUsers = {
-      ...existingUsers,
-      [username]: { password },
-    };
+      const isAccountExist = await isUserAccountExists(username, phoneNumber)
+      if (isAccountExist) {
+      alert("Account with same nickname or phone number already exists! Please log-in or use other credentials");
+      return;   
+    } else {
+      const onlyPhoneNumber = phoneNumber.replace("+", "");
+      const registrationResult = await addRegisteredUser(username, password, onlyPhoneNumber);
+      if (registrationResult === undefined) {
+        alert("Registration successful!");
+        navigate("/auth/signin");
+      } else {
+        alert("Sorry, some problems with registration... please, try later again");
+      }
+    }
 
-    const onlyPhoneNumber = phoneNumber.replace("+", "");
+    // const updatedUsers = {
+    //   ...existingUsers,
+    //   [username]: { password },
+    // };
 
     // saveData("users", updatedUsers);
-    addRegisteredUser(username, password, onlyPhoneNumber);
-    alert("Registration successful!");
-    navigate("/auth/signin");
   };
 
   const formConfig = {

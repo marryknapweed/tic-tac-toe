@@ -62,6 +62,10 @@ import { authenticateUser } from "../utils/firestore";
 export function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+    const [isShowModal, setIsShowModal] = useState(false)
+    const [modalContent, setIsModalContent] = useState('')
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -76,7 +80,8 @@ export function Login() {
         dispatch(login({ username, id: isAuthenticated }));
         navigate("/chooseGameMode");
       } else {
-        alert("Invalid username or password");
+        setIsModalContent("Invalid username or password");
+        setIsShowModal(true)
       }
     }
   };
@@ -104,7 +109,7 @@ export function Login() {
       text: "Register",
       href: "/auth/signup",
       description: "Don't have an account?",
-    },
+    }, isShowModal, modalContent, setIsModalContent, setIsShowModal
   };
 
   return <AuthForm config={formConfig} />;

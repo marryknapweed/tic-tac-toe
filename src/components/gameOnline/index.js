@@ -10,6 +10,7 @@ import { useTimer as RestartTimer } from "../roomsForm/timer";
 import { useLocation } from "react-router-dom";
 import { ChatWindow } from "./chatWindow";
 import { calculateWinner } from "../../utils";
+import Modal from "../modal/modal";
 import useOnlineStatus from "./onlineCheck";
 import "./index.css";
 
@@ -38,6 +39,10 @@ export function GameOnline({ player }) {
   const [isPlayerLeaved, setIsPlayerLeaved] = useState({})
   const [isTabHidden, setIsTabHidden] = useState({})
   const [isDisconnected, setIsDisconnected] = useState({})
+
+  const [isShowModal, setIsShowModal] = useState(false)
+  const [modalContent, setIsModalContent] = useState('')
+  const currentFunc = useRef(function () {})
 
 
   const winnerUpdated = useRef(false);
@@ -114,9 +119,11 @@ export function GameOnline({ player }) {
   useEffect(() => {
     if (isPlayerLeaved.status) {
       const currentNickName = localStorage.getItem("username")
+      localStorage.removeItem("roomId")
       if (isPlayerLeaved.byUsername !== currentNickName) {
-        alert(`Sorry, your opponent ${isPlayerLeaved.byUsername} is leaved the game, room will be deleted...`)
-        navigate('/chooseGameMode')
+        setIsModalContent(`Sorry, your opponent ${isPlayerLeaved.byUsername} is leaved the game, room will be deleted...`);
+        setIsShowModal(true)
+        currentFunc.current = function () { return navigate('/chooseGameMode')}
       }
     }
   }, [isPlayerLeaved])
@@ -125,7 +132,8 @@ export function GameOnline({ player }) {
     if (isTabHidden.status) {
       const currentNickName = localStorage.getItem("username")
       if (isTabHidden.byUsername !== currentNickName) {
-        alert(`Sorry, your opponent ${isTabHidden.byUsername} is changed the tab, please wait a little bit... :)`)
+        setIsModalContent(`Sorry, your opponent ${isTabHidden.byUsername} is changed the tab, please wait a little bit... :)`);
+        setIsShowModal(true)
       }
     }
   }, [isTabHidden])
@@ -135,12 +143,16 @@ export function GameOnline({ player }) {
     if (isDisconnected.status) {
       const currentNickName = localStorage.getItem("username")
       if (isDisconnected.byUsername !== currentNickName) {
-        alert(`Sorry, your opponent ${isDisconnected.byUsername} is disconnected from the internet, room will be deleted...`)
+        setIsModalContent(`Sorry, your opponent ${isDisconnected.byUsername} is disconnected from the internet, room will be deleted...`);
+        setIsShowModal(true)
+
         localStorage.removeItem("roomId")
         handleGameDestroy()
         setIsGameExist(false) 
       } else {
-        alert(`Sorry, you is disconnected from the internet, room was deleted`)
+        setIsModalContent(`Sorry, you is disconnected from the internet, room was deleted`);
+        setIsShowModal(true)
+
         localStorage.removeItem("roomId")
         handleGameDestroy()
         setIsGameExist(false) 
@@ -370,7 +382,7 @@ export function GameOnline({ player }) {
   };
 
   const handleGameDestroy = async () => {
-    localStorage.removeItem("roomId")
+    await localStorage.removeItem("roomId")
     const actions = await roomActions()
     await actions.deleteRoom(roomId)
     setIsGameExist(false)
@@ -392,8 +404,18 @@ export function GameOnline({ player }) {
   const currentRightsPlayer_id = isPlayerTurn === "p1" ? "player1" : "player2" 
   const currentRightToSet = sessionData[currentRightsPlayer_id]
   
+  const toggleModal = (onCloseFunc = function () {}) => {
+    setIsShowModal((prev) => !prev);
+    onCloseFunc()
+  };
+
   return (
     <div className="game">
+
+<Modal isOpen={isShowModal} onClose={toggleModal} content={modalContent}>
+    <button className="auth-button" onClick={() => toggleModal(currentFunc.current)}>Close Modal</button>
+    </Modal>
+
     <div className="game-container">
       <div className="game-main">
         <p>Now {currentRightToSet}'s turn</p>

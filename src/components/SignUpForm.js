@@ -8,6 +8,10 @@ export function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  
+  const [isShowModal, setIsShowModal] = useState(false)
+  const [modalContent, setIsModalContent] = useState('')
+
   const navigate = useNavigate();
 
   const handleRegister = async () => {
@@ -28,24 +32,28 @@ export function Register() {
       const numberErr = validatePhoneNumber(phoneNumber)
 
     if (numberErr) {
-      alert("Wrong number format, please check it out and try again");
+      setIsModalContent("Wrong number format, please check it out and try again");
+      setIsShowModal(true)
       return;
     }
 
       const isAccountExist = await isUserAccountExists(username, phoneNumber)
       if (isAccountExist) {
-      alert("Account with same nickname or phone number already exists! Please log-in or use other credentials");
+      setIsModalContent("Account with same nickname or phone number already exists! Please log-in or use other credentials");
+      setIsShowModal(true)
       return;   
     } else {
       const onlyPhoneNumber = phoneNumber.replace("+", "");
       const registrationResult = await addRegisteredUser(username, password, onlyPhoneNumber);
       if (registrationResult === undefined) {
-        alert("Registration successful!");
-        navigate("/auth/signin");
+        setIsModalContent("Registration successful!");
+        setIsShowModal(true)
       } else {
-        alert("Sorry, some problems with registration... please, try later again");
+        setIsModalContent("Sorry, some problems with registration... please, try later again");
+        setIsShowModal(true)
       }
     }
+    
 
     // const updatedUsers = {
     //   ...existingUsers,
@@ -53,6 +61,14 @@ export function Register() {
     // };
 
     // saveData("users", updatedUsers);
+  };
+
+  const onCloseFunc = () => {
+    setIsShowModal(false); // Close the modal
+    setUsername("");
+    setPassword("");
+    setPhoneNumber("");
+    navigate("/auth/signin"); // Navigate to the sign-in page
   };
 
   const formConfig = {
@@ -70,6 +86,7 @@ export function Register() {
       href: "/auth/signin",
       description: "Already registered?",
     },
+    isShowModal, modalContent, setIsModalContent, setIsShowModal, onCloseFunc
   };
 
   return <AuthForm config={formConfig} />;

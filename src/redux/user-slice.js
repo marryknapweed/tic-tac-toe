@@ -132,10 +132,10 @@ const userSlice = createSlice({
 
     // Логаут пользователя
     logout(state) {
-      deAuthenticateUser()
-      state.username = null;
-      state.id = null;
-      state.stats = { wins: 0, losses: 0, draws: 0 }; // Сбрасываем статистику
+        deAuthenticateUser()
+        state.username = null;
+        state.id = null;
+        state.stats = { wins: 0, losses: 0, draws: 0 }; // Сбрасываем статистику
     },
   },
 });

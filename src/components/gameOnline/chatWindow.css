@@ -7,7 +7,8 @@
 .chat-window {
     right: 20px;
     top: 70px; /* Adjust based on your layout */
-    width: 350px; /* Width of the chat window */
+    max-width: 350px;
+    max-width: 400px; /* Width of the chat window */
     max-height: auto; /* Max height of the chat window */
     background-color: #ffffff;
     border-radius: 8px;
@@ -84,7 +85,7 @@
     max-width: 70%; /* Limit the width of the message */
     color: white; /* Text color for better contrast */
     margin-right: auto; /* Pushes the message to the left */
-    word-break: break-all;
+    word-break: keep-all;
   }
 
   .msg-add-content-current, .msg-add-content-opponent {

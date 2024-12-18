@@ -1,30 +1,60 @@
-.auth-tabs {
-  max-width: 400px;
-  margin: 0 auto;
-  text-align: center;
+.auth_tabs { 
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .tab-buttons {
   display: flex;
   justify-content: space-around;
   margin-bottom: 16px;
+  padding: 20px;
+  width: 100%;
 }
 
 .tab-button {
   flex: 1;
-  padding: 8px 12px;
+  padding: 10px 12px;
   cursor: pointer;
   border: none;
   background-color: #f0f0f0;
   border-radius: 4px;
+  margin-right: 10px;
   font-weight: bold;
+  transition: all 0.3s;
+}
+
+.tab-button:last-child {
+  margin: 0;
 }
 
 .tab-button.active {
-  background-color: #007bff;
+  background-color: #ff8ba7;
+  box-shadow: 0 10px 30px rgba(255, 139, 166, 0.743);
+  color: white;
+}
+
+.tab-button:hover {
+  background-color: #ffcdd8;
+  box-shadow: 0 10px 30px rgba(255, 139, 166, 0.743);
   color: white;
 }
 
 .tab-content {
   margin-top: 16px;
+  max-width: 400px;
+  margin-left: auto; /* Center horizontally */
+  margin-right: auto; /* Center horizontally */
+  display: flex; /* Use flexbox for centering */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  height: calc(100vh - 100px); /* Adjust height as needed */
+}
+
+form {
+  width: 100%; /* Ensure the form takes full width of the container */
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Stack elements vertically */
+  align-items: center; /* Center elements horizontally */
 }

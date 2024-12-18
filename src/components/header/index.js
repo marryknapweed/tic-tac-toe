@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../redux/user-slice";
 import { FaUserCircle } from "react-icons/fa";
 import { HiOutlineMenuAlt3, HiX } from "react-icons/hi";
 import {ReactComponent as Logo} from "../../svgs/game-logo.svg"
+import Modal from "../modal/modal";
+import { roomActions, trackUsersActions } from "../../utils/firestore";
 import "./index.css";
 
 export function Header() {
@@ -17,14 +19,50 @@ export function Header() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleLogout = e => {
-    e.stopPropagation();
-    dispatch(logout());
-    navigate("/auth/signin");
-    setMenuOpen(false);
+  const [isShowModal, setIsShowModal] = useState(false)
+  const [modalContent, setIsModalContent] = useState('')
+  const currentFunc = useRef(function () {})
+  const mobileNavRef = useRef(null);
+
+  const handleGameDestroy = async () => {
+    const roomId = localStorage.getItem("roomId")
+    localStorage.removeItem("roomId")
+    const actions = await roomActions()
+    await actions.deleteRoom(roomId)
+  }
+
+  const deleteAndExit = async () => {
+    setMenuOpen(false); 
     localStorage.removeItem("username"); // Удаляем токен авторизации
     localStorage.removeItem("role")
-    localStorage.removeItem("id")
+    dispatch(logout());
+    navigate("/auth/signin");
+    handleGameDestroy()
+  }
+  
+    const handleGameExit = async () => {
+      try {
+        const roomId = localStorage.getItem("roomId")
+        const trackActions = await trackUsersActions()
+        await trackActions.setPlayerLeave(roomId, {status: true, byUsername: localStorage.getItem("username")}, true).then(() => localStorage.removeItem("roomId")).then(() => deleteAndExit())
+      } catch {
+        
+      }
+  
+    }
+
+  const handleLogout = e => {
+    e.stopPropagation();
+    const isWasOnlineGame = Boolean(localStorage.getItem("roomId"))
+    if (isWasOnlineGame) {
+      setIsModalContent("Are u sure that u gonna leave from lobby and exit?")
+      setIsShowModal(true)
+      currentFunc.current = function () {
+        handleGameExit()
+      }
+    } else {
+      deleteAndExit()
+    } 
   };
 
   const goToProfile = () => {
@@ -36,9 +74,32 @@ export function Header() {
     setMenuOpen(prev => !prev);
   };
 
+  const toggleModal = (onCloseFunc = function () {}) => {
+    setIsShowModal((prev) => !prev);
+    onCloseFunc()
+  };
+
+   // Handle clicks outside of the mobile navigation
+   const handleClickOutside = (event) => {
+    if (mobileNavRef.current && !mobileNavRef.current.contains(event.target)) {
+      setMenuOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
 
   return (
     <header className="header">
+      <Modal isOpen={isShowModal} onClose={toggleModal} content={modalContent}>
+      <button className="auth-button" onClick={() => toggleModal(currentFunc.current)}>yes, i'm sure</button>
+      <button className="auth-button" onClick={toggleModal}>Close Modal</button>
+      </Modal>
       { !isAdmin && (
          <Link to="/chooseGameMode">
           <div className="header__container">
@@ -55,6 +116,7 @@ export function Header() {
       </div>
       <nav
         className={`header__nav ${menuOpen ? "header__nav--mobile open" : ""}`}
+        ref={mobileNavRef} // Attach the ref to the navigation
       >
       { !isAdmin && (
         <>

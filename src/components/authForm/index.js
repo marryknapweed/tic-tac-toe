@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
+import Modal from "../modal/modal.js"
 import "./index.css";
 
 export function AuthForm({ config }) {
@@ -13,7 +14,7 @@ export function AuthForm({ config }) {
     onPhoneNumberChange,
     onSubmit,
     link,
-    buttonText,
+    buttonText, isShowModal, setIsShowModal, modalContent, onCloseFunc
   } = config;
 
   const [showPassword, setShowPassword] = useState(false);
@@ -91,8 +92,21 @@ export function AuthForm({ config }) {
     setShowPassword(!showPassword);
   };
 
+
+
+  const toggleModal = (onCloseFunc = function () {}) => {
+    setIsShowModal((prev) => !prev);
+    onCloseFunc()
+  };
+  
+
   return (
     <div className="auth-wrapper">
+
+    <Modal isOpen={isShowModal} onClose={toggleModal} content={modalContent}>
+    <button className="auth-button" onClick={() => toggleModal(onCloseFunc)}>Close Modal</button>
+    </Modal>
+
       <div className="auth">
         <h2>{title}</h2>
         <form onSubmit={handleSubmit} className="auth-form">

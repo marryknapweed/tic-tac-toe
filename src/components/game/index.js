@@ -322,8 +322,7 @@ export function Game({ player }) {
   const xIsNext = currentMove % 2 === 0;
   const winner = calculateWinner(currentSquares);
   const isBoardFull = currentSquares.every(square => square !== null);
-
-  console.log(currentSquares)
+  const isCanChangeLevel = Boolean(currentSquares.includes("X") || currentSquares.includes("O"))
 
   const isUser = () => {
     const role = localStorage.getItem("role");
@@ -484,23 +483,31 @@ export function Game({ player }) {
     }
   };
 
+  const ui_gameSelector = () => {
+    return (
+      <>
+      <label className="game-mode">Select game mode:</label>
+      <div
+        className={`custom-dropdown ${isDropdownOpen ? "open" : ""}`}
+        onClick={toggleDropdown}
+      >
+        <button className="custom-dropdown-button">{botLevel}</button>
+        <ul className="custom-dropdown-list">
+          <li onClick={() => handleSelect("easy")}>Easy</li>
+          <li onClick={() => handleSelect("medium")}>Medium</li>
+          <li onClick={() => handleSelect("hard")}>Hard</li>
+        </ul>
+      </div>
+    </>
+    )
+  }
+
   return (
     <div className="game">
       <div className="game-container">
         <div className="game-sidebar">
           <div className="game-selector">
-            <label className="game-mode">Select game mode:</label>
-            <div
-              className={`custom-dropdown ${isDropdownOpen ? "open" : ""}`}
-              onClick={toggleDropdown}
-            >
-              <button className="custom-dropdown-button">{botLevel}</button>
-              <ul className="custom-dropdown-list">
-                <li onClick={() => handleSelect("easy")}>Easy</li>
-                <li onClick={() => handleSelect("medium")}>Medium</li>
-                <li onClick={() => handleSelect("hard")}>Hard</li>
-              </ul>
-            </div>
+            {!isCanChangeLevel ? ui_gameSelector() : <p className="auth-button">You are playing with AI in {botLevel} level, you can't change it during the game</p>}
           </div>
         </div>
         <div className="game-main">

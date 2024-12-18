@@ -133,7 +133,6 @@ export async function authenticateUser (username, password) {
 
 export async function deAuthenticateUser () {
   const id = localStorage.getItem("id");
-  
   if (!id) {
     console.error("User  ID not found in local storage.");
     return false; // Return false if no user ID is found
@@ -144,6 +143,7 @@ export async function deAuthenticateUser () {
   try {
     // Update the isAuthenticated field to false
     await updateDoc(userRef, { isAuthenticated: false });
+    // localStorage.removeItem("id")
     return true; // Return true if the operation was successful
   } catch (error) {
     console.error("Error de-authenticating user: ", error);

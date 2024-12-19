@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase/firebaseConfig";
 import { isNumberExistsInDB } from "../utils/firestore";
+import Modal from "./modal/modal";
 
 export function LoginWithPhone({ config = {} }) {
   const {
@@ -24,6 +25,9 @@ export function LoginWithPhone({ config = {} }) {
     otp: "",
   });
   const [userData, setUserData] = useState({})
+
+  const [isShowModal, setIsShowModal] = useState(false)
+  const [modalContent, setIsModalContent] = useState('')
 
   const navigate = useNavigate();
   const setupRecaptcha = () => {
@@ -70,6 +74,8 @@ export function LoginWithPhone({ config = {} }) {
 
     try {
       if (!isNumberExists) {
+        setIsModalContent("Wrong number format, please check it out and try again");
+        setIsShowModal(true)
         navigate("/auth/signup"); // redirect to registration part !!!! ===========================
         return;
       } else {
@@ -95,6 +101,11 @@ export function LoginWithPhone({ config = {} }) {
       });
     }
   };
+
+  const onCloseFunc = () => {
+    navigate("/auth/signup");
+  };
+
 
   const handleVerifyOtp = async e => {
     e.preventDefault();
@@ -122,8 +133,20 @@ export function LoginWithPhone({ config = {} }) {
     }
   };
 
+  const toggleModal = (onCloseFunc = function () {}) => {
+    setIsShowModal((prev) => !prev);
+    onCloseFunc()
+  };
+  
+
   return (
     <div className="auth-wrapper">
+
+
+    <Modal isOpen={isShowModal} onClose={toggleModal} content={modalContent}>
+    <button className="auth-button" onClick={() => toggleModal(onCloseFunc)}>Okay</button>
+    </Modal>
+
       <div className="auth">
         <h2>{title}</h2>
         <form

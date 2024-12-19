@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import { roomActions, trackUsersActions } from "../../utils/firestore";
 import { useTimer as Timer } from "./timer";
+import './connectIndex.css'
 
 export function HostRoom() {
   const [roomId, setRoomId] = useState("Generating...")

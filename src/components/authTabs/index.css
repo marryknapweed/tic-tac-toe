@@ -35,12 +35,6 @@
   color: white;
 }
 
-.tab-button:hover {
-  background-color: #ffcdd8;
-  box-shadow: 0 10px 30px rgba(255, 139, 166, 0.743);
-  color: white;
-}
-
 .tab-content {
   margin-top: 16px;
   max-width: 400px;
@@ -57,4 +51,18 @@ form {
   display: flex; /* Use flexbox for layout */
   flex-direction: column; /* Stack elements vertically */
   align-items: center; /* Center elements horizontally */
+}
+
+/* Prevent links from appearing blue on iPhones */
+.auth_tabs a {
+  color: inherit; /* Inherit the color from the parent element */
+  text-decoration: none; /* Remove underline */
+}
+
+.auth_tabs a:visited {
+  color: inherit; /* Ensure visited links also inherit color */
+}
+
+.auth_tabs a:hover, .auth_tabs a:focus {
+  color: inherit; /* Ensure hover and focus states also inherit color */
 }

@@ -1,8 +1,118 @@
-.test-func {
+
+.input-container {
+    position: relative;
+  }
+  
+  .input-container input, .input-container-describe input {
+    background-color: #fff;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .input-container-describe input {
+    padding-bottom: 350px;
+    break
+  }
+
+  .input-container.error input {
+    border: none;
+    box-shadow: 0 0 8px #f44336;
+  }
+
+
+  .input-container .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
     display: flex;
-    justify-items: center;
     align-items: center;
-    margin-top: 50%;
-    flex-direction: column;
-    color: rgb(36, 0, 0);
-}
+    justify-content: center;
+  }
+
+  
+@media (max-width: 1024px) {
+    .auth {
+      max-width: 350px;
+    }
+  
+    .auth h2 {
+      font-size: 22px;
+    }
+  
+    .auth-button {
+      font-size: 14px;
+    }
+  
+    .input-container input {
+      padding: 10px;
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .auth {
+      max-width: 320px;
+    }
+  
+    .auth h2 {
+      font-size: 20px;
+    }
+  
+    .auth-button {
+      font-size: 14px;
+      padding: 10px;
+    }
+  
+    .input-container input {
+      padding: 8px;
+      font-size: 14px;
+    }
+  
+    .register-link {
+      font-size: 12px;
+    }
+  
+    .register-link a {
+      font-size: 12px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .auth {
+      max-width: 300px;
+    }
+  
+    .auth h2 {
+      font-size: 18px;
+    }
+  
+    .auth-button {
+      font-size: 12px;
+      padding: 8px;
+    }
+  
+    .input-container input {
+      padding: 6px;
+      font-size: 12px;
+    }
+  
+    .register-link {
+      font-size: 10px;
+    }
+  
+    .register-link a {
+      font-size: 10px;
+    }
+  }

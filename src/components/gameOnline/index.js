@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useTransition } from "react";
 import { Board } from "../board";
 import { useDispatch } from "react-redux";
 import { updateStats, updateGamesHistory } from "../../redux/user-slice";
@@ -31,10 +31,9 @@ export function GameOnline({ player }) {
   const [gameStarted, setGameStarted] = useState(false); // Состояние для отслеживания начала игры
   const [isPlayerTurn, setIsPlayerTurn] = useState("p1")
   const [playerSide, setPlayerSide] = useState("")
-  const [isRestartTimerShown, setIsRestartTimerShown] = useState(false)
   const { timeRemaining, setTimeRemaining, uiElement, start, setStart } = RestartTimer("Game restarts in");
   const [isGameExist, setIsGameExist] = useState(true)
-  
+  const [hasEffectRun, setHasEffectRun] = useState(false);
   
   const [isPlayerLeaved, setIsPlayerLeaved] = useState({})
   const [isTabHidden, setIsTabHidden] = useState({})
@@ -42,7 +41,8 @@ export function GameOnline({ player }) {
 
   const [isShowModal, setIsShowModal] = useState(false)
   const [modalContent, setIsModalContent] = useState('')
-  const currentFunc = useRef(function () {})
+  const currentFunc = useRef({buttonsCount: 1, func: function () {}})
+  const userIds = useRef([])
 
 
   const winnerUpdated = useRef(false);
@@ -50,27 +50,66 @@ export function GameOnline({ player }) {
   const isBoardFull = currentSquares.every(square => square !== null);
   const isOnline = useOnlineStatus();
 
+  const isUser = () => {
+    const role = localStorage.getItem("role");
+    if (role === 'user') {
+      return true;
+    } else {
+      navigate("/history");
+      return false; // Return false if not admin
+    }
+  };
+
+    useEffect(() => {
+      isUser()
+    }, []); // Add navigate to the dependency arra
+  
+    useEffect(() => {
+      if (currentSquares.includes("X") || currentSquares.includes("O")) {
+        setGameStarted(true)
+      }
+    }, [currentSquares])
+
+    useEffect(() => {
+        const res = Boolean(currentSquares.includes("X") || currentSquares.includes("O"))
+        setGameStarted(res)
+    }, [currentSquares])
+
   //----DB setters
 
   useEffect(() => {
-
-    const username = localStorage.getItem("username")
+    const username = localStorage.getItem("username");
+  
     const setHiddenTabStatus = async (value) => {
-      const actions = await trackUsersActions()
-      await actions.hideTabSet(roomId, value, true)
-    }
-
+      const actions = await trackUsersActions();
+      await actions.hideTabSet(roomId, value, true);
+    };
+  
+    const isPlayerLeaved = async () => {
+      const actions = await trackUsersActions();
+      await actions.setPlayerLeave(roomId, { status: true, byUsername: username }, true);
+    };
+  
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        setHiddenTabStatus({status: true, byUsername: username})
+        setHiddenTabStatus({ status: true, byUsername: username });
       } else {
-        setHiddenTabStatus({status: false, byUsername: username})
+        setHiddenTabStatus({ status: false, byUsername: username });
       }
     };
-
+  
+    const handleBeforeUnload = (event) => {
+      setIsModalContent("Are u sure that u gonna do this action?")
+      setIsShowModal(true)
+      currentFunc.current = {buttonsCount: 2, func: function () {isPlayerLeaved}}
+    };
+  
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
@@ -123,7 +162,7 @@ export function GameOnline({ player }) {
       if (isPlayerLeaved.byUsername !== currentNickName) {
         setIsModalContent(`Sorry, your opponent ${isPlayerLeaved.byUsername} is leaved the game, room will be deleted...`);
         setIsShowModal(true)
-        currentFunc.current = function () { return navigate('/chooseGameMode')}
+        currentFunc.current = {buttonsCount: 1, func: function () { return navigate('/chooseGameMode')}}
       }
     }
   }, [isPlayerLeaved])
@@ -183,12 +222,16 @@ export function GameOnline({ player }) {
 
 
 
+
+
   useEffect(() => {
     const defineSession = async () => {
       try {
         const actions = await roomActions();
         const data = await actions.getRoomData(roomId)
         setSessionData(data)
+        setScores(data.scores)
+        userIds.current = data.ids
         const players = [{name: data.player1, key: "p1"}, {name: data.player2, key: "p2"}]
         // const accessedNames = [data.player1, data.player2]
         // await isAuthorizedUser(accessedNames)
@@ -209,28 +252,28 @@ export function GameOnline({ player }) {
     }
   }, [sessionData, navigate]);
 
-  useEffect(() => {
-    const savedScores = getData("scores") || { X: 0, O: 0 };
-   setScores(savedScores);
-  }, []);
+  // useEffect(() => {
+  //   const savedScores = getData("scores") || { X: 0, O: 0 };
+  //  setScores(savedScores);
+  // }, []);
 
-  useEffect(() => {
-    if (gameOver.current) return;
+  // useEffect(() => {
+  //   if (gameOver.current) return;
 
-    const chaosTimer = setInterval(() => {
-      setTimeUntilChaos(prevTime => {
-        if (prevTime <= 1) {
-          chaos();
-          return 5;
-        }
-        return prevTime - 1;
-      });
-    }, 1000);
+  //   const chaosTimer = setInterval(() => {
+  //     setTimeUntilChaos(prevTime => {
+  //       if (prevTime <= 1) {
+  //         chaos();
+  //         return 5;
+  //       }
+  //       return prevTime - 1;
+  //     });
+  //   }, 1000);
 
-    return () => {
-      clearInterval(chaosTimer)
-    };
-  }, [gameOver.current, currentSquares]);
+  //   return () => {
+  //     clearInterval(chaosTimer)
+  //   };
+  // }, [gameOver.current, currentSquares]);
 
   const updateSquares = async (data) => {
     try {
@@ -296,6 +339,7 @@ export function GameOnline({ player }) {
         const actions = await trackUsersActions()
         await actions.checkForSquares(roomId, setCurrentSquares, true)
         await actions.checkForPlayerTurn(roomId, setIsPlayerTurn, true)
+        await actions.getScoresStats(roomId, setScores, true)
       } catch {
   
       }
@@ -308,7 +352,6 @@ export function GameOnline({ player }) {
     try {
       setCurrentMove(0);
       winnerUpdated.current = false;
-      setGameStarted(false);
       setTimeUntilChaos(5);
       setIsPlayerTurn("p1"); // Сброс хода на игрока
       await updateSquares(Array(9).fill(null));
@@ -319,38 +362,42 @@ export function GameOnline({ player }) {
 
 
   useEffect(() => {
-    if (winner && !winnerUpdated.current) {
+
+      const updateScoresData = async (data) => {
+        const actions = await trackUsersActions()
+        await actions.setScoresStats(roomId, data, true)
+      }
+
+    if (winner && !winnerUpdated.current && !gameOver.current) {
       gameOver.current = true;
-      setIsRestartTimerShown(true)
       setStart(true)
 
       // Обновляем счет только один раз за победу
       const newScores = { ...scores };
       newScores[winner.winner] += 1;
-      setScores(newScores)
+      updateScoresData(newScores)
       winnerUpdated.current = true; // Устанавливаем, что победитель обновлен
-
 
       const currentUserName = localStorage.getItem("username")
       const opponent = [sessionData.player1, sessionData.player2].filter((name) => name !== currentUserName)[0]
-      const isOppositePlayerLeaved = Boolean(isDisconnected.byUsername !== currentUserName && isPlayerLeaved.byUsername !== currentUserName)
-      
+      const isOppositePlayerLeaved = Boolean((isDisconnected.byUsername !== currentUserName && isPlayerLeaved.byUsername !== currentUserName) && gameStarted)
+      const ids = userIds.current
       // Обновляем статистику игрока
         dispatch(
           updateStats({ result: winner.winner === "X" ? "wins" : "losses"}),
         );
         dispatch(
-          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses", opponent: opponent, isAutomaticWin: isOppositePlayerLeaved, type: 'online' })
+          updateGamesHistory({ result: winner.winner, opponent: opponent, isAutomaticWin: isOppositePlayerLeaved, type: 'online', ids, sessionData })
         );
     } else if (!winner && isBoardFull && !gameOver.current) {
       gameOver.current = true
+      setStart(true)
       dispatch(updateStats({ result: "draws" }));
     }
   }, [winner, winnerUpdated.current, dispatch, isBoardFull, gameOver.current]);
 
   useEffect(() => {
-    if (isBoardFull) {
-      setIsRestartTimerShown(true)
+    if (isBoardFull || winner || gameOver.current === true) {
       setStart(true)
     }
   }, [isBoardFull, winner, gameOver.current])
@@ -359,7 +406,6 @@ export function GameOnline({ player }) {
     const handleEndTimer = async () => {
       try {
         await resetGame()
-        await setIsRestartTimerShown(false)
         gameOver.current = false;
         setStart(false)
         setTimeRemaining(5)
@@ -374,12 +420,13 @@ export function GameOnline({ player }) {
   }, [timeRemaining])
 
 
+
   // Функция обработчик для завершения таймера
-  const handleTimerEnd = () => {
-    if (!gameOver.current) {
-      chaos();
-    }
-  };
+  // const handleTimerEnd = () => {
+  //   if (!gameOver.current) {
+  //     chaos();
+  //   }
+  // };
 
   const handleGameDestroy = async () => {
     await localStorage.removeItem("roomId")
@@ -413,15 +460,19 @@ export function GameOnline({ player }) {
     <div className="game">
 
 <Modal isOpen={isShowModal} onClose={toggleModal} content={modalContent}>
-    <button className="auth-button" onClick={() => toggleModal(currentFunc.current)}>Close Modal</button>
+    {currentFunc.current.buttonsCount === 1 ? 
+    (<button className="auth-button" onClick={() => toggleModal(currentFunc.current.func)}>Okay</button>) 
+    : ([<button className="auth-button" onClick={() => toggleModal(currentFunc.current.func)}>Yes, i'm sure</button>,
+    <button className="auth-button" onClick={() => toggleModal}>No, close the modal</button>]) }
+    {/* <button className="auth-button" onClick={toggleModal}>No, close the modal</button> */}
     </Modal>
 
     <div className="game-container">
       <div className="game-main">
         <p>Now {currentRightToSet}'s turn</p>
-        {gameStarted && timeUntilChaos > 0 && !gameOver.current && (
+        {/* {gameStarted && timeUntilChaos > 0 && !gameOver.current && (
           <Timer remainingTime={timeUntilChaos} onTimerEnd={handleTimerEnd} />
-        )}
+        )} */}
         <div className="game-board">
           <Board
             xIsNext={currentMove % 2 === 0}

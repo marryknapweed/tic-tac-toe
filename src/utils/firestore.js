@@ -15,6 +15,31 @@ import {
 } from "firebase/firestore";
 import generateRoomId from "./generateRoomId";
 
+
+export async function sendReport(data) {
+  const reportsCollection = collection(db, "user_reports"); // Reference to the "games" collection
+  try {
+    // Add a new document to the "games" collection
+    const docRef = await addDoc(reportsCollection, data);
+    console.log("Document written with ID: ", docRef.id);
+    return docRef.id; // Optionally return the ID of the newly added document
+  } catch (error) {
+    console.error("Error appending game history: ", error);
+    return null; // Return null or handle the error as needed
+  }
+}
+
+export async function getReports() {
+  const reportsCollection = collection(db, "user_reports");
+  const querySnapshot = await getDocs(reportsCollection); // Use getDocs instead of getDoc
+
+  const reports = [];
+  querySnapshot.forEach((doc) => {
+    reports.push({ id: doc.id, ...doc.data() }); // Push each document's data into the reports array
+  });
+
+  return reports; // Return the array of reports
+}
 // // Сохранение статистики пользователя
 export async function saveUserStats(id, stats) {
   const userRef = doc(db, "users", id);
@@ -165,11 +190,11 @@ export async function fetchGameHistory(specifiedUser  = undefined) {
   const gamesCollection = collection(db, "games_history")
   const userFilter = query(
     gamesCollection,
-    where("user_id", "==", specifiedUser),
+    where("ids", "array-contains", specifiedUser),
   );
 
   try {
-    const querySnapshot = specifiedUser ? await getDocs(userFilter) : await getDocs(gamesCollection);
+    const querySnapshot = specifiedUser  !== undefined ? await getDocs(userFilter) : await getDocs(gamesCollection);
     const gamesData = querySnapshot.docs .map(doc => ({
       id: doc.id,
       opponent: doc.data().opponent,
@@ -235,12 +260,14 @@ export async function roomActions() {
           squares: emptyArr,
           player1: username, // host
           player2: '',
+          ids: [localStorage.getItem("id")],
           turn: 'p1',
           roomId: generateRoomId(),
           isStarted: false,
           isPlayerLeaved: {status: false, byUsername: ''},
           isPlayerDisconnected: {status: false, byUsername: ''},
-          isTabHidden: {status: false, byUsername: ''}
+          isTabHidden: {status: false, byUsername: ''},
+          scores: {X: 0, O: 0}
       };
       
       try {
@@ -275,7 +302,7 @@ export async function roomActions() {
     }
 } 
 
-async function connectRoom(id, username) {
+async function connectRoom(id, username, userId) {
   try {
       const usersCollection = collection(db, "online_rooms");
       const roomFilter = query(usersCollection, where("roomId", "==", id));
@@ -289,7 +316,7 @@ async function connectRoom(id, username) {
           let roomData = null; // Initialize a variable to hold room data
           for (const docSnapshot of querySnapshot.docs) {
               const roomDocRef = docSnapshot.ref; // Get the document reference
-              await updateDoc(roomDocRef, { player2: username }); // Update player2 with the username
+              await updateDoc(roomDocRef, { player2: username, ids: [...docSnapshot.data().ids, userId] }); // Update player2 with the username
               
               // Get the updated room data
               roomData = { id: docSnapshot.id, ...docSnapshot.data(), player2: username };
@@ -513,6 +540,8 @@ export async function trackUsersActions() {
     getHiddenTabStatus: (roomId, updateState, bool) => trackDocument(roomId, "isTabHidden", updateState, bool),
     setDisconnected: async (roomId, value, isReqToFind) => updateDocument(roomId, "isPlayerDisconnected", value, isReqToFind),
     getIfDisconnected: (roomId, updateState, bool) => trackDocument(roomId, "isPlayerDisconnected", updateState, bool),
+    setScoresStats: async (roomId, value, isReqToFind) => updateDocument(roomId, "scores", value, isReqToFind),
+    getScoresStats: (roomId, updateState, bool) => trackDocument(roomId, "scores", updateState, bool),
   };
 }
 
@@ -535,3 +564,7 @@ export async function trackUsersActions() {
 // clearCollection("games_history")
 //   .then(() => console.log("Collection cleared"))
 //   .catch((error) => console.error("Error clearing collection: ", error));
+
+  // clearCollection("online_rooms")
+  // .then(() => console.log("Collection cleared"))
+  // .catch((error) => console.error("Error clearing collection: ", error));

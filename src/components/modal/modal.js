@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './modal.css';
 
-const Modal = ({ isOpen, onClose, children, title = "Уведомление", content = "This is a simple modal window"}) => {
+const Modal = ({ isOpen, onClose, children, title = "System notify", content = "This is a simple modal window"}) => {
   useEffect(() => {
     // Prevent scrolling when the modal is open
     if (isOpen) {

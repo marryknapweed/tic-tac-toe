@@ -12,7 +12,7 @@ export const GameHistory = () => {
 
   useEffect(() => {
     const loadGameHistory = async () => {
-      const isAdmin = Boolean(localStorage.getItem("role") === 'Admin')
+      const isAdmin = Boolean(localStorage.getItem("role") === 'admin')
       const id = localStorage.getItem("id")
       const games = isAdmin ? await fetchGameHistory() : await fetchGameHistory(id);
       console.log("Fetched games:", games); // Log the fetched games

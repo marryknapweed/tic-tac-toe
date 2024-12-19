@@ -20,7 +20,8 @@ export function ConnectRoom () {
     
         if (roomInput) {
             const actions = await roomActions();
-            const data = await actions.connectRoom(roomInput, username); // Get the roomId
+            const userId = localStorage.getItem("id")
+            const data = await actions.connectRoom(roomInput, username, userId); // Get the roomId
             if (data) {
                 setIsConnectedTo(true)
                 setConnectedPerson(data.player1)

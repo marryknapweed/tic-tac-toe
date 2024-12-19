@@ -98,10 +98,9 @@ export function Header() {
     <header className="header">
       <Modal isOpen={isShowModal} onClose={toggleModal} content={modalContent}>
       <button className="auth-button" onClick={() => toggleModal(currentFunc.current)}>yes, i'm sure</button>
-      <button className="auth-button" onClick={toggleModal}>Close Modal</button>
+      <button className="auth-button" onClick={toggleModal}>no, i'm stay</button>
       </Modal>
-      { !isAdmin && (
-         <Link to="/chooseGameMode">
+         <Link to={!isAdmin ? "/chooseGameMode" : `${location.pathname}`}>
           <div className="header__container">
           <Logo width={60} height={60}/>
           <div className="header__logo__container">
@@ -110,7 +109,6 @@ export function Header() {
           </div>
          </div>
        </Link>
-      )}
       <div className="header__burger" onClick={toggleMenu}>
         {menuOpen ? <HiX size={30} /> : <HiOutlineMenuAlt3 size={30} />}
       </div>
@@ -120,13 +118,6 @@ export function Header() {
       >
       { !isAdmin && (
         <>
-        <Link
-          to="/bugReport"
-          className="header__link"
-          onClick={() => setMenuOpen(false)}
-        >
-         Find a bug?
-        </Link>
         <Link
           to="/chooseGameMode"
           className="header__link"
@@ -141,6 +132,9 @@ export function Header() {
         >
           Leaderboard
         </Link>
+        </>
+      )}
+      <>
         <Link
           to="/history"
           className="header__link"
@@ -148,8 +142,15 @@ export function Header() {
         >
           Game's History
         </Link>
+        <Link
+          to="/bugReport"
+          className="header__link"
+          onClick={() => setMenuOpen(false)}
+        >
+         {isAdmin ? "Bug reports" : "Find a bug?"}
+        </Link>
         </>
-      )}
+      
       
         {username && (
           <div className="header__profile--mobile" onClick={goToProfile}>

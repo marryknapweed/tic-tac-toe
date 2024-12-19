@@ -45,7 +45,7 @@ export function Layout() {
   return (
     <>
       <Modal isOpen={isShowModal} onClose={toggleModal} content={modalContent}>
-      <button className="auth-button" onClick={() => toggleModal(currentFunc.current)}>Close Modal</button>
+      <button className="auth-button" onClick={() => toggleModal(currentFunc.current)}>Okay</button>
       </Modal>
       {!isLayoutHidden && <Header />}
       <Container>

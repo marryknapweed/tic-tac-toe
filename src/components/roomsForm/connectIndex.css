@@ -1,13 +1,13 @@
-.wrapper {
+.auth-wrapper, .wrapper{
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    min-height: 80vh;
     background: linear-gradient(135deg, #a8edea, #fed6e3);
     margin: 0;
   }
 
-  .wrap {
+  .auth, .wrap {
     background: #fff;
     border-radius: 16px;
     padding: 40px 30px;

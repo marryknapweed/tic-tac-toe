@@ -131,17 +131,6 @@ input:-webkit-autofill {
 }
 
 @media (max-width: 1024px) {
-  .auth {
-    max-width: 350px;
-  }
-
-  .auth h2 {
-    font-size: 22px;
-  }
-
-  .auth-button {
-    font-size: 14px;
-  }
 
   .input-container input {
     padding: 10px;
@@ -150,57 +139,19 @@ input:-webkit-autofill {
 }
 
 @media (max-width: 768px) {
-  .auth {
-    max-width: 320px;
-  }
-
-  .auth h2 {
-    font-size: 20px;
-  }
-
-  .auth-button {
-    font-size: 14px;
-    padding: 10px;
-  }
 
   .input-container input {
     padding: 8px;
     font-size: 14px;
   }
 
-  .register-link {
-    font-size: 12px;
-  }
-
-  .register-link a {
-    font-size: 12px;
-  }
 }
 
 @media (max-width: 480px) {
-  .auth {
-    max-width: 300px;
-  }
-
-  .auth h2 {
-    font-size: 18px;
-  }
-
-  .auth-button {
-    font-size: 12px;
-    padding: 8px;
-  }
 
   .input-container input {
     padding: 6px;
     font-size: 12px;
   }
 
-  .register-link {
-    font-size: 10px;
-  }
-
-  .register-link a {
-    font-size: 10px;
-  }
 }

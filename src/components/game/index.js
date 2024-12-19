@@ -424,7 +424,7 @@ export function Game({ player }) {
   console.log(scores)
 
   useEffect(() => {
-    if (winner && !winnerUpdated.current) {
+    if (winner && !winnerUpdated.current && !gameOver.current) {
       gameOver.current = true;
 
       // Обновляем счет только один раз за победу
@@ -438,7 +438,7 @@ export function Game({ player }) {
           updateStats({ result: winner.winner === "X" ? "wins" : "losses" }),
         );
         dispatch(
-          updateGamesHistory({ result: winner.winner === "X" ? "wins" : "losses", opponent: 'AI', isAutomaticWin: false, type: 'offline' })
+          updateGamesHistory({ result: winner.winner, opponent: 'AI', isAutomaticWin: false, type: 'offline' })
         );
     } else if (!winner && isBoardFull && !gameOver.current) {
       gameOver.current = true

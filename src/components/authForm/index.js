@@ -104,7 +104,7 @@ export function AuthForm({ config }) {
     <div className="auth-wrapper">
 
     <Modal isOpen={isShowModal} onClose={toggleModal} content={modalContent}>
-    <button className="auth-button" onClick={() => toggleModal(onCloseFunc)}>Close Modal</button>
+    <button className="auth-button" onClick={() => toggleModal(onCloseFunc)}>Okay</button>
     </Modal>
 
       <div className="auth">

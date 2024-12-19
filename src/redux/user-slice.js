@@ -103,7 +103,7 @@ const userSlice = createSlice({
     },
 
     updateGamesHistory(state, action) {
-      const { result, opponent, isAutomaticWin, type } = action.payload;
+      const { result, opponent, isAutomaticWin, type, ids, sessionData} = action.payload;
       const user = localStorage.getItem("username");
       const userId = localStorage.getItem("id");
   
@@ -112,22 +112,46 @@ const userSlice = createSlice({
           console.error("User  or User ID not found in local storage.");
           return;
       }
-  
-      const winner = result === 'wins' ? user : opponent;
-      const opposite = !isAutomaticWin ? user : (opponent !== 'AI' ? opponent : 'AI');
+      const returnMap = () => {
+        let map;
+        if (sessionData !== undefined) {
+          map = {X: sessionData.player1, O: sessionData.player2}
+        } else {
+          map = {X: localStorage.getItem("username"), O: "AI"}
+        }
+        return map
+      }
+
+      const whosTheOpposite = () => {
+        if (type === 'offline') {
+          return "AI"
+        } else {
+          return !isAutomaticWin ? user : (opponent !== 'AI' ? opponent : 'AI');
+        }
+      }
+      
+      const map = returnMap()
+      const winner = map[result]
+      const opposite = whosTheOpposite()
+
+      
       const currentData = new Date()
-  
       const dataTemplate = {
-          date: new Date(),
-          opponent: opposite,
-          user_id: userId,
-          username: user,
-          wins: winner,
-          type: type || 'offline' // Default to 'offline' if type is not provided
-      };
+        date: currentData,
+        opponent: opposite,
+        ids: ids ? ids : [localStorage.getItem("id"), ''],
+        username: user,
+        wins: winner,
+        type: type || 'offline'
+      }
   
-      console.log(dataTemplate);
-      appendGameHistory(dataTemplate);
+      if (type === "online") {
+        if (winner === user) {
+          appendGameHistory(dataTemplate);
+        }
+      } else {
+        appendGameHistory(dataTemplate);
+      }
   },
 
     // Логаут пользователя

@@ -1,10 +1,26 @@
-import './index.css'
+import { useState, useEffect } from "react";
+import UserContent from "./userContent";
+import AdminContent from "./adminContent";
 
-export function BugReport () {
+export default function ReportAboutBugIndexPage() {
+    const [currentRole, setCurrentRole] = useState("");
+
+    const whoIsUser  = () => {
+        const role = localStorage.getItem("role");
+        setCurrentRole(role);
+    };
+
+    useEffect(() => {
+        whoIsUser ();
+    }, []); // Empty dependency array means this runs once on mount
+
     return (
-        <div className="test-func">
-        <h1>Page is under maintance</h1>
-        <h1>please wait for end of development... or the next meet :)</h1>
+        <div>
+            {currentRole === "user" ? (
+                <UserContent />
+            ) : (
+                <AdminContent />
+            )}
         </div>
-    )
+    );
 }

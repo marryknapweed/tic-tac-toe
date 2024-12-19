@@ -1,5 +1,5 @@
 import './index.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 
 export function ChooseGameMode() {
@@ -17,6 +17,21 @@ export function ChooseGameMode() {
     const handleButtonClick = (mode) => {
         return navigate(pahts[mode]);
     };
+
+      const isUser = () => {
+        const role = localStorage.getItem("role");
+        if (role === 'user') {
+          return true;
+        } else {
+          navigate("/history");
+          return false; // Return false if not admin
+        }
+      };
+    
+        useEffect(() => {
+          isUser()
+        }, []); // Add navigate to the dependency arra
+      
 
     return (
         <div className='choose-wrapper'>
